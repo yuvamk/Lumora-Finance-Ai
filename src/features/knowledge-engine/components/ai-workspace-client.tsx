@@ -323,7 +323,7 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
               onChange={(e) => setChatInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
               placeholder="Ask about budgets, trends, or record an expense..."
-              className="flex-grow bg-transparent text-xs text-white placeholder-zinc-650 outline-none"
+              className="flex-grow bg-transparent text-base md:text-xs text-white placeholder-zinc-650 outline-none"
             />
             <Button
               onClick={handleSendChat}
@@ -428,7 +428,7 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
                 value={nlpText}
                 onChange={(e) => setNlpText(e.target.value)}
                 placeholder="E.g., I spent ₹80 on breakfast, or paid 120 for petrol."
-                className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11"
+                className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-base md:text-sm"
               />
               <Button
                 onClick={handleNlpParse}

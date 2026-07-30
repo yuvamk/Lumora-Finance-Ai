@@ -285,7 +285,7 @@ export function QuickAddButton() {
                         id="category"
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-base md:text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
                       >
                         <option value="" className="bg-zinc-950 text-zinc-400">Select Category (Optional)</option>
                         {categories.map((c) => (
@@ -299,13 +299,13 @@ export function QuickAddButton() {
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="date" className="text-xs text-zinc-400">Date</Label>
-                    <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-xs" required />
+                    <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-base md:text-xs" required />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="notes" className="text-xs text-zinc-400">Notes</Label>
-                  <Textarea id="notes" placeholder="Details..." value={notes} onChange={(e) => setNotes(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl text-xs" />
+                  <Textarea id="notes" placeholder="Details..." value={notes} onChange={(e) => setNotes(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl text-base md:text-xs" />
                 </div>
 
                 <Button type="submit" disabled={isPending} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-11 rounded-xl">
@@ -338,7 +338,7 @@ export function QuickAddButton() {
                         id="category"
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-base md:text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
                       >
                         <option value="" className="bg-zinc-950 text-zinc-400">Select Category (Optional)</option>
                         {categories.map((c) => (
@@ -354,7 +354,7 @@ export function QuickAddButton() {
 
                 <div className="space-y-1.5">
                   <Label htmlFor="date" className="text-xs text-zinc-400">Date</Label>
-                  <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-xs" required />
+                  <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-base md:text-xs" required />
                 </div>
 
                 <Button type="submit" disabled={isPending} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-11 rounded-xl">
@@ -387,7 +387,7 @@ export function QuickAddButton() {
                         id="category"
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-base md:text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
                       >
                         <option value="" className="bg-zinc-950 text-zinc-400">Select Category (Optional)</option>
                         {categories.map((c) => (
@@ -403,7 +403,7 @@ export function QuickAddButton() {
 
                 <div className="space-y-1.5">
                   <Label htmlFor="date" className="text-xs text-zinc-400">Date</Label>
-                  <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-xs" required />
+                  <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-base md:text-xs" required />
                 </div>
 
                 <Button type="submit" disabled={isPending} className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold h-11 rounded-xl">
@@ -436,7 +436,7 @@ export function QuickAddButton() {
                         id="category"
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-base md:text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
                       >
                         <option value="" className="bg-zinc-950 text-zinc-400">Select Category (Optional)</option>
                         {categories.map((c) => (
@@ -452,7 +452,7 @@ export function QuickAddButton() {
 
                 <div className="space-y-1.5">
                   <Label htmlFor="date" className="text-xs text-zinc-400">Date</Label>
-                  <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-xs" required />
+                  <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-base md:text-xs" required />
                 </div>
 
                 <Button type="submit" disabled={isPending} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-11 rounded-xl">
@@ -485,7 +485,7 @@ export function QuickAddButton() {
                         id="category"
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-base md:text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
                       >
                         <option value="" className="bg-zinc-950 text-zinc-400">Select Category (Optional)</option>
                         {categories.map((c) => (
@@ -501,7 +501,7 @@ export function QuickAddButton() {
 
                 <div className="space-y-1.5">
                   <Label htmlFor="date" className="text-xs text-zinc-400">Date</Label>
-                  <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-xs" required />
+                  <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-base md:text-xs" required />
                 </div>
 
                 <Button type="submit" disabled={isPending} className="w-full bg-violet-650 hover:bg-violet-600 text-white font-bold h-11 rounded-xl">
@@ -534,7 +534,7 @@ export function QuickAddButton() {
                         id="category"
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-base md:text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
                       >
                         <option value="" className="bg-zinc-950 text-zinc-400">Select Category (Optional)</option>
                         {categories.map((c) => (
@@ -555,7 +555,7 @@ export function QuickAddButton() {
                       id="rule"
                       value={recurringRule}
                       onChange={(e) => setRecurringRule(e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-850 text-white rounded-xl h-11 px-3 text-xs focus:ring-0 focus:outline-none"
+                      className="w-full bg-zinc-900 border border-zinc-850 text-white rounded-xl h-11 px-3 text-base md:text-xs focus:ring-0 focus:outline-none"
                     >
                       <option value="weekly">Weekly</option>
                       <option value="monthly">Monthly</option>
@@ -564,7 +564,7 @@ export function QuickAddButton() {
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="date" className="text-xs text-zinc-400">Start Date</Label>
-                    <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-xs" required />
+                    <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-base md:text-xs" required />
                   </div>
                 </div>
 
@@ -605,7 +605,7 @@ export function QuickAddButton() {
                         id="category"
                         value={selectedCategory}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
+                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-base md:text-xs focus:ring-0 focus:outline-none appearance-none cursor-pointer"
                       >
                         <option value="" className="bg-zinc-950 text-zinc-400">Select Category (Optional)</option>
                         {categories.map((c) => (
@@ -654,7 +654,7 @@ export function QuickAddButton() {
                       id="mood"
                       value={mood}
                       onChange={(e) => setMood(e.target.value as any)}
-                      className="w-full bg-zinc-900 border border-zinc-850 text-white rounded-xl h-11 px-3 text-xs focus:ring-0 focus:outline-none"
+                      className="w-full bg-zinc-900 border border-zinc-850 text-white rounded-xl h-11 px-3 text-base md:text-xs focus:ring-0 focus:outline-none"
                     >
                       <option value="neutral">Neutral 😐</option>
                       <option value="happy">Happy 😊</option>

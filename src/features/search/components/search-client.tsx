@@ -94,7 +94,7 @@ export function SearchClient() {
             value={query}
             onChange={(e) => handleInput(e.target.value)}
             placeholder="Search transactions, budgets, goals…"
-            className="w-full bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 rounded-2xl h-12 pl-11 pr-10 text-sm focus:outline-none focus:border-indigo-500/60 transition-colors"
+            className="w-full bg-zinc-900 border border-zinc-800 text-white placeholder:text-zinc-600 rounded-2xl h-12 pl-11 pr-10 text-base md:text-sm focus:outline-none focus:border-indigo-500/60 transition-colors"
           />
           {(query || isPending) && (
             <button

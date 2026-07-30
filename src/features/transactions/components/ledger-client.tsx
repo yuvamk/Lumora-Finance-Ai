@@ -95,7 +95,7 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
               placeholder="Search merchant, tags, notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-sm bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-9.5 pr-4 text-white focus:outline-none focus:border-zinc-700 placeholder-zinc-500 transition-colors"
+              className="w-full text-base md:text-sm bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-9.5 pr-4 text-white focus:outline-none focus:border-zinc-700 placeholder-zinc-500 transition-colors"
             />
           </div>
           <Button 
