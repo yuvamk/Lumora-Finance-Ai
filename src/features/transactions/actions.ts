@@ -202,7 +202,7 @@ export async function parseExpenseNlpAction(
     let parsedResult: any = null;
 
     if (claudeApiKey) {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      let response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
           "x-api-key": claudeApiKey,
@@ -210,7 +210,7 @@ export async function parseExpenseNlpAction(
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
+          model: "claude-3-5-haiku-20241022",
           max_tokens: 800,
           messages: [
             {
@@ -241,6 +241,50 @@ Note:
           ],
         }),
       });
+
+      // Fallback if 404 / 400 to Claude 3 Haiku
+      if (!response.ok && (response.status === 404 || response.status === 400)) {
+        console.warn(`⚠️ Claude 3.5 Haiku failed in NLP. Retrying with Claude 3 Haiku...`);
+        response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "x-api-key": claudeApiKey,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "claude-3-haiku-20240307",
+            max_tokens: 800,
+            messages: [
+              {
+                role: "user",
+                content: `Analyze this statement: "${text}".
+Extract the transaction properties and return ONLY a raw JSON object with the following structure:
+{
+  "amount": 0.00,
+  "type": "expense" | "income" | "transfer",
+  "merchant": "...",
+  "item": "...",
+  "categorySuggestion": "must match exactly one of: [${categoriesList}]",
+  "paymentMethod": "...",
+  "notes": "...",
+  "date": "YYYY-MM-DD",
+  "time": "HH:MM:SS",
+  "isRecurring": false
+}
+
+Note:
+- Default type to "expense" unless income/transfer is specified.
+- If currency is ₹/rupees/INR or anything else, extract only the number as amount (e.g. ₹320 -> 320).
+- If date is not specified, default to "${todayStr}".
+- If time is not specified, default to "${nowTimeStr}".
+- Suggested category MUST be one of: [${categoriesList}]. Choose the best match.
+- Do not include markdown code blocks. Return only raw JSON.`,
+              },
+            ],
+          }),
+        });
+      }
 
       if (response.ok) {
         const data = await response.json();

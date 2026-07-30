@@ -94,6 +94,7 @@ CRITICAL RULES:
 - **DETERMINISTIC PRESENTATION**: Rely entirely on the pre-calculated metrics, insights, and recommendations supplied inside the Financial Knowledge Object below.
 - **SOURCE INTEGRITY**: Refer to confidence metrics and Priority levels where helpful.
 - **CONCISE FORMATTING**: Present responses in clean, bulleted, mobile-first Markdown.
+- **CURRENCY**: Since the user is in India, always format currency amounts using Indian Rupee (₹) symbols instead of dollars ($).
 
 EXPENSE CAPTURE RULE:
 - If the user explicitly mentions a transaction they want to record (e.g. "I spent 20 rupees on a toffee" or "Bought coffee for $4"), you must:
@@ -101,6 +102,14 @@ EXPENSE CAPTURE RULE:
   2. Append a special XML tag at the very end of your response:
      <save-expense-cta amount="[number]" merchant="[string]" category="[one of: ${categoriesList}]" notes="[string]" />
      Example: <save-expense-cta amount="20" merchant="Toffee" category="Food & Dining" notes="Spent 20 rupees on a toffee" />
+
+SUGGESTED QUESTIONS:
+- At the very end of your response, always suggest 2 to 3 context-aware, follow-up questions the user might want to ask next. Format them inside a <suggested-questions> XML tag (one question per bullet line starting with "- ").
+  Example:
+  <suggested-questions>
+  - What is my budget utilization?
+  - How can I save more?
+  </suggested-questions>
 
 Provided Financial Context (FKO):
 ${JSON.stringify(financialContext, null, 2)}`;
@@ -122,7 +131,7 @@ ${JSON.stringify(financialContext, null, 2)}`;
       const topBehavior = financialContext.financialKnowledge.behaviors?.[0];
       const topPrediction = financialContext.financialKnowledge.predictions?.[0];
 
-      let demoResponse = `[Demo Mode] Lumora AI: Thank you for asking! Based on your financial intelligence layer:\n\n- **Health Score**: **${score.grade}** (${score.overallScore}/100)\n- **Top Behavior**: ${topBehavior?.description || "No behavior patterns detected yet."}\n- **Top Prediction**: ${topPrediction?.metric ? `${topPrediction.metric} is trending ${topPrediction.trend}` : "No predictions available yet."}\n\n*Configure CLAUDE_API_KEY inside your .env.local to enable real-time AI explanations.*`;
+      let demoResponse = `[Demo Mode] Lumora AI: Thank you for asking! Based on your financial intelligence layer:\n\n- **Health Score**: **${score.grade}** (${score.overallScore}/100)\n- **Top Behavior**: ${topBehavior?.description || "No behavior patterns detected yet."}\n- **Top Prediction**: ${topPrediction?.metric ? `${topPrediction.metric} is trending ${topPrediction.trend}` : "No predictions available yet."}\n\n*Configure CLAUDE_API_KEY inside your .env.local to enable real-time AI explanations.*\n\n<suggested-questions>\n- Tell me about my budgets\n- What are my top categories?\n- Show me my savings goals\n</suggested-questions>`;
 
       // Check if user is asking to record an expense in demo mode
       const lowerMsg = message.toLowerCase();
@@ -140,7 +149,7 @@ ${JSON.stringify(financialContext, null, 2)}`;
         if (lowerMsg.includes("uber")) category = "Transportation";
         else if (lowerMsg.includes("electricity")) category = "Utilities";
 
-        demoResponse = `[Demo Mode] Lumora AI: I see you want to log an expense of ₹${amount} at ${merchant}.\n\nWould you like me to save this expense?\n\n<save-expense-cta amount="${amount}" merchant="${merchant}" category="${category}" notes="Spent ${amount} on ${merchant}" />`;
+        demoResponse = `[Demo Mode] Lumora AI: I see you want to log an expense of ₹${amount} at ${merchant}.\n\nWould you like me to save this expense?\n\n<save-expense-cta amount="${amount}" merchant="${merchant}" category="${category}" notes="Spent ${amount} on ${merchant}" />\n\n<suggested-questions>\n- Show me my today expenses\n- Tell me about my budgets\n</suggested-questions>`;
       }
 
       // Log assistant message in demo mode
@@ -158,7 +167,8 @@ ${JSON.stringify(financialContext, null, 2)}`;
       });
     }
 
-    const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
+    // Try Claude 3.5 Haiku first
+    let claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": claudeApiKey,
@@ -166,12 +176,31 @@ ${JSON.stringify(financialContext, null, 2)}`;
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: "claude-3-5-haiku-20241022",
         max_tokens: 1024,
         system: systemPrompt,
         messages: claudeMessages,
       }),
     });
+
+    // If 404 or 400 validation error (e.g. model not available on tier), fallback to Claude 3 Haiku (always available)
+    if (!claudeResponse.ok && (claudeResponse.status === 404 || claudeResponse.status === 400)) {
+      console.warn(`⚠️ Claude 3.5 Haiku failed with status ${claudeResponse.status}. Retrying with Claude 3 Haiku...`);
+      claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "x-api-key": claudeApiKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "claude-3-haiku-20240307",
+          max_tokens: 1024,
+          system: systemPrompt,
+          messages: claudeMessages,
+        }),
+      });
+    }
 
     if (!claudeResponse.ok) {
       const errText = await claudeResponse.text();
@@ -205,7 +234,7 @@ ${JSON.stringify(financialContext, null, 2)}`;
         conversation_id: activeConversationId,
         role: "assistant",
         message: assistantContent,
-        model: "claude-haiku-4-5-20251001",
+        model: data.model || "claude-haiku-fallback",
       });
 
     if (assistantMsgError) {
