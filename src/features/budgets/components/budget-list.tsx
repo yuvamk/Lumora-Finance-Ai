@@ -114,21 +114,21 @@ export function BudgetList({ initialBudgets, categories }: BudgetListProps) {
                 key={b.budgetId}
                 className="p-4 bg-zinc-900/60 border border-zinc-900 rounded-2xl space-y-3 relative group"
               >
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div 
                       style={{ backgroundColor: `${b.color}15`, border: `1px solid ${b.color}35` }}
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shrink-0"
                     >
                       {b.categoryName.slice(0, 2).toUpperCase()}
                     </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-white leading-tight">{b.categoryName}</h4>
-                      <span className="text-[10px] text-zinc-500 font-mono uppercase">{b.period} cycle</span>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-white leading-tight truncate" title={b.categoryName}>{b.categoryName}</h4>
+                      <span className="text-[10px] text-zinc-500 font-mono uppercase block truncate">{b.period} cycle</span>
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <span className="text-sm font-bold font-mono text-zinc-200">
                       ${b.spentAmount.toFixed(2)}
                     </span>

@@ -24,10 +24,17 @@ function NotificationsSkeleton() {
   );
 }
 
+import { NotificationEngine } from "@/features/notifications/services/notification-engine";
+
 async function NotificationsContent() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
+
+  // Run automated alert checks for subscription renewals and budget limits
+  await NotificationEngine.checkAndGenerateAlerts(user.id).catch(err => {
+    console.error("Notification check error:", err);
+  });
 
   const notifications = await NotificationsRepository.getNotifications(user.id);
 

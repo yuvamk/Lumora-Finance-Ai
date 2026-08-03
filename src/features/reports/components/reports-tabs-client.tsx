@@ -284,16 +284,18 @@ export function ReportsTabsClient({
                     const catName = categoriesDbList.find((c) => c.id === t.category_id)?.name || "Category";
                     return (
                       <div key={t.id} className="bg-zinc-900/60 border border-zinc-900 rounded-2xl p-4 flex justify-between items-center text-xs">
-                        <div>
-                          <h4 className="font-bold text-zinc-200">{t.notes?.split("-")[0]?.trim() || "Item"}</h4>
-                          <span className="text-[10px] text-zinc-500">{t.date}</span>
+                        <div className="flex-1 min-w-0 mr-3">
+                          <h4 className="font-bold text-zinc-200 truncate" title={t.notes || "Item"}>{t.notes?.split("-")[0]?.trim() || "Item"}</h4>
+                          <span className="text-[10px] text-zinc-500">
+                            {t.date ? new Date(t.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}
+                          </span>
                           <span className="text-[10px] text-zinc-500 ml-2">{t.time || ""}</span>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right shrink-0">
                           <span className={`font-bold ${t.type === "income" ? "text-emerald-400" : "text-zinc-200"}`}>
                             {t.type === "income" ? "+" : "-"} ₹{t.amount}
                           </span>
-                          <p className="text-[10px] text-zinc-500 mt-0.5">{catName}</p>
+                          <p className="text-[10px] text-zinc-500 mt-0.5 truncate max-w-[100px]">{catName}</p>
                         </div>
                       </div>
                     );

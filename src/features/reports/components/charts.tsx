@@ -12,13 +12,37 @@ const COLORS = [
   "#ef4444", "#ec4899", "#84cc16", "#f97316", "#3b82f6",
 ];
 
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function formatMonthLabel(dateStr: string): string {
+  if (!dateStr) return "";
+  const cleanStr = String(dateStr).trim();
+  
+  // Safely parse YYYY-MM-DD or YYYY-MM format without invalid Date conversion issues
+  const match = cleanStr.match(/^(\d{4})-(\d{2})/);
+  if (match) {
+    const year = match[1];
+    const month = parseInt(match[2], 10);
+    if (month >= 1 && month <= 12) {
+      return `${MONTH_NAMES[month - 1]} '${year.slice(2)}`;
+    }
+  }
+
+  const d = new Date(cleanStr);
+  if (!isNaN(d.getTime())) {
+    return d.toLocaleDateString("en-US", { month: "short" });
+  }
+
+  return cleanStr;
+}
+
 // ─── Cash Flow Chart ──────────────────────────────────────────────────────────
 export function CashFlowChart({ data }: { data: CashflowRow[] }) {
   if (!data.length) return <EmptyChart label="No cash flow data yet" />;
 
   const formatted = data.map(d => ({
     ...d,
-    month: new Date(d.month + "-01").toLocaleDateString("en-US", { month: "short" }),
+    month: formatMonthLabel(d.month),
   }));
 
   return (
@@ -37,14 +61,14 @@ export function CashFlowChart({ data }: { data: CashflowRow[] }) {
         <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
         <XAxis dataKey="month" tick={{ fill: "#71717a", fontSize: 10 }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fill: "#71717a", fontSize: 10 }} axisLine={false} tickLine={false}
-          tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} />
+          tickFormatter={(v: number) => v >= 1000 ? `₹${(v / 1000).toFixed(0)}k` : `₹${v}`} />
         <Tooltip
           contentStyle={{ background: "#18181b", border: "1px solid #27272a", borderRadius: 12, fontSize: 11 }}
           labelStyle={{ color: "#a1a1aa" }}
           formatter={(value: unknown, name: unknown) => {
             const v = Number(value);
             const label = name === "income" ? "Income" : "Expense";
-            return [`$${v.toLocaleString()}`, label];
+            return [`₹${v.toLocaleString()}`, label];
           }}
         />
         <Area type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} fill="url(#incomeGrad)" />
@@ -71,7 +95,7 @@ export function CategoryPieChart({ data }: { data: CategoryBreakdownRow[] }) {
           </Pie>
           <Tooltip
             contentStyle={{ background: "#18181b", border: "1px solid #27272a", borderRadius: 12, fontSize: 11 }}
-            formatter={(value: unknown) => [`$${Number(value).toLocaleString()}`, ""]}
+            formatter={(value: unknown) => [`₹${Number(value).toLocaleString()}`, ""]}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -95,7 +119,7 @@ export function IncomeExpenseBarChart({ data }: { data: CashflowRow[] }) {
   if (!data.length) return <EmptyChart label="No data yet" />;
   const formatted = data.map(d => ({
     ...d,
-    month: new Date(d.month + "-01").toLocaleDateString("en-US", { month: "short" }),
+    month: formatMonthLabel(d.month),
   }));
 
   return (
@@ -104,13 +128,13 @@ export function IncomeExpenseBarChart({ data }: { data: CashflowRow[] }) {
         <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
         <XAxis dataKey="month" tick={{ fill: "#71717a", fontSize: 10 }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fill: "#71717a", fontSize: 10 }} axisLine={false} tickLine={false}
-          tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} />
+          tickFormatter={(v: number) => v >= 1000 ? `₹${(v / 1000).toFixed(0)}k` : `₹${v}`} />
         <Tooltip
           contentStyle={{ background: "#18181b", border: "1px solid #27272a", borderRadius: 12, fontSize: 11 }}
           formatter={(value: unknown, name: unknown) => {
             const v = Number(value);
             const label = name === "income" ? "Income" : "Expenses";
-            return [`$${v.toLocaleString()}`, label];
+            return [`₹${v.toLocaleString()}`, label];
           }}
         />
         <Legend wrapperStyle={{ fontSize: 11, color: "#71717a" }} />

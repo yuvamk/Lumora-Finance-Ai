@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { 
   Sparkles, Brain, Lightbulb, TrendingUp, AlertTriangle, 
-  MessageSquare, Loader2, Send, Bot, User, Camera, Play, CheckCircle2, History
+  MessageSquare, Loader2, Send, Bot, User, Camera, Play, CheckCircle2, History, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -130,6 +130,23 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
     });
   };
 
+  const handleClearChat = async () => {
+    try {
+      await fetch("/api/chat", { method: "DELETE" });
+      setMessages([
+        {
+          role: "assistant",
+          content:
+            "Hi! I'm Lumora AI, your personal finance co-pilot 🚀\n\nAsk me anything: budget advice, trend explanation, expense logging (e.g. 'I spent 20 rupees on toffee'), or future predictions.",
+        },
+      ]);
+      setSavedStates({});
+      toast.success("Chat history cleared!");
+    } catch {
+      toast.error("Failed to clear chat history.");
+    }
+  };
+
   const handleConfirmSaveChat = async (
     index: number,
     amountStr: string,
@@ -241,7 +258,25 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
 
       {/* TAB 1: Conversational Chat */}
       {activeTab === "chat" && (
-        <div className="bg-zinc-900/40 border border-zinc-900 rounded-3xl p-4 flex flex-col h-[500px]">
+        <div className="bg-zinc-900/40 border border-zinc-900 rounded-3xl p-4 flex flex-col h-[520px]">
+          {/* Header Bar with Clear Chat button */}
+          <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3 mb-3 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              </div>
+              <span className="text-xs font-bold text-white uppercase tracking-wider">Lumora AI Copilot</span>
+            </div>
+            <button
+              onClick={handleClearChat}
+              title="Clear chat history"
+              className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400 hover:text-rose-400 bg-zinc-900 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/30 px-3 py-1.5 rounded-xl transition-all cursor-pointer select-none"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-zinc-400 group-hover:text-rose-400" />
+              <span>Clear Chat</span>
+            </button>
+          </div>
+
           {/* Messages Area */}
           <div className="flex-grow overflow-y-auto space-y-4 pr-1 min-h-0 mb-4">
             {messages.map((msg, i) => {

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, X, Send, Sparkles, Loader2, Bot, User } from "lucide-react";
+import { MessageSquare, X, Send, Sparkles, Loader2, Bot, User, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { createTransactionAction } from "@/features/transactions/actions";
@@ -71,6 +71,23 @@ export function ChatDrawer() {
     }
   }, [isOpen]);
 
+  const handleClearChat = async () => {
+    try {
+      await fetch("/api/chat", { method: "DELETE" });
+      setMessages([
+        {
+          role: "assistant",
+          content:
+            "Hi! I'm Lumora AI, your financial co-pilot 🚀\n\nI've already analyzed your finances. Ask me anything — budgets, goals, spending habits, or predictions.",
+        },
+      ]);
+      setSavedStates({});
+      toast.success("Chat history cleared!");
+    } catch {
+      toast.error("Failed to clear chat history.");
+    }
+  };
+
   const handleConfirmSave = async (
     index: number,
     amountStr: string,
@@ -130,13 +147,14 @@ export function ChatDrawer() {
     toast.info("Transaction cancelled.");
   };
 
-  const handleSend = () => {
-    const trimmed = input.trim();
+  const handleSend = (directText?: string) => {
+    const textToSend = directText || input;
+    const trimmed = textToSend.trim();
     if (!trimmed || isPending) return;
 
     const userMsg: ChatMessage = { role: "user", content: trimmed };
     setMessages((prev) => [...prev, userMsg]);
-    setInput("");
+    if (!directText) setInput("");
 
     startTransition(async () => {
       try {
@@ -165,7 +183,7 @@ export function ChatDrawer() {
           {
             role: "assistant",
             content:
-              "⚠️ I'm having trouble connecting right now. Please check your API key configuration and try again.",
+              "⚠️ Connection error. Please try again.",
           },
         ]);
       }
@@ -220,103 +238,141 @@ export function ChatDrawer() {
                 </span>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="w-8 h-8 rounded-xl bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleClearChat}
+                title="Clear chat history"
+                className="w-8 h-8 rounded-xl bg-zinc-900 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/30 flex items-center justify-center text-zinc-400 hover:text-rose-400 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="w-8 h-8 rounded-xl bg-zinc-900 hover:bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 min-h-0">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex gap-2.5 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
-              >
-                {/* Avatar */}
-                <div className={`w-7 h-7 rounded-xl flex-shrink-0 flex items-center justify-center mt-0.5 ${
-                  msg.role === "assistant"
-                    ? "bg-gradient-to-br from-indigo-600 to-violet-500"
-                    : "bg-zinc-800 border border-zinc-700"
-                }`}>
-                  {msg.role === "assistant" ? (
-                    <Bot className="w-3.5 h-3.5 text-white" />
-                  ) : (
-                    <User className="w-3.5 h-3.5 text-zinc-300" />
-                  )}
-                </div>
+            {messages.map((msg, i) => {
+              const isAssistant = msg.role === "assistant";
+              const ctaRegex = /<save-expense-cta\s+amount="([^"]+)"\s+merchant="([^"]+)"\s+category="([^"]+)"\s+notes="([^"]+)"\s*\/>/;
+              const suggestionsRegex = /<suggested-questions>([\s\S]*?)<\/suggested-questions>/;
 
-                {/* Bubble */}
+              const match = msg.content.match(ctaRegex);
+              const suggestionsMatch = msg.content.match(suggestionsRegex);
+
+              const cleanContent = msg.content.replace(ctaRegex, "").replace(suggestionsRegex, "").trim();
+
+              return (
                 <div
-                  className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap ${
-                    msg.role === "user"
-                      ? "bg-indigo-600 text-white rounded-tr-sm"
-                      : "bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-tl-sm"
-                  }`}
+                  key={i}
+                  className={`flex flex-col gap-1.5 ${msg.role === "user" ? "items-end" : "items-start"}`}
                 >
-                  {(() => {
-                    const ctaRegex = /<save-expense-cta\s+amount="([^"]+)"\s+merchant="([^"]+)"\s+category="([^"]+)"\s+notes="([^"]+)"\s*\/>/;
-                    const match = msg.content.match(ctaRegex);
-                    const cleanContent = msg.content.replace(ctaRegex, "").trim();
+                  <div className={`flex gap-2.5 max-w-[85%] ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                    {/* Avatar */}
+                    <div className={`w-7 h-7 rounded-xl flex-shrink-0 flex items-center justify-center mt-0.5 ${
+                      msg.role === "assistant"
+                        ? "bg-gradient-to-br from-indigo-600 to-violet-500"
+                        : "bg-zinc-800 border border-zinc-700"
+                    }`}>
+                      {msg.role === "assistant" ? (
+                        <Bot className="w-3.5 h-3.5 text-white" />
+                      ) : (
+                        <User className="w-3.5 h-3.5 text-zinc-300" />
+                      )}
+                    </div>
 
-                    if (!match) return msg.content;
-
-                    const amount = match[1];
-                    const merchant = match[2];
-                    const category = match[3];
-                    const notes = match[4];
-
-                    return (
+                    {/* Bubble */}
+                    <div
+                      className={`px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap ${
+                        msg.role === "user"
+                          ? "bg-indigo-600 text-white rounded-tr-sm"
+                          : "bg-zinc-900 text-zinc-200 border border-zinc-800 rounded-tl-sm"
+                      }`}
+                    >
                       <div className="space-y-2 text-left">
                         <div className="whitespace-pre-wrap">{cleanContent}</div>
-                        <div className="mt-3 p-3 bg-zinc-950/80 rounded-xl border border-zinc-800/80 space-y-2.5">
-                          <div className="flex justify-between items-center text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
-                            <span>Confirm transaction</span>
-                            <span className="font-mono text-indigo-400 text-xs">₹{amount}</span>
-                          </div>
-                          <div className="text-[10px] text-zinc-500 space-y-0.5 leading-normal">
-                            <p>Merchant: <span className="text-zinc-300 font-semibold">{merchant}</span></p>
-                            <p>Category: <span className="text-zinc-300 font-semibold">{category}</span></p>
-                          </div>
-                          
-                          {/* Actions */}
-                          {savedStates[i] === "saved" ? (
-                            <div className="text-center text-[9px] text-emerald-400 font-bold py-1 bg-emerald-500/10 rounded-lg">
-                              ✓ Saved to Ledger
+
+                        {match && (() => {
+                          const amount = match[1];
+                          const merchant = match[2];
+                          const category = match[3];
+                          const notes = match[4];
+
+                          return (
+                            <div className="mt-3 p-3 bg-zinc-950/80 rounded-xl border border-zinc-800/80 space-y-2.5">
+                              <div className="flex justify-between items-center text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
+                                <span>Confirm transaction</span>
+                                <span className="font-mono text-indigo-400 text-xs">₹{amount}</span>
+                              </div>
+                              <div className="text-[10px] text-zinc-500 space-y-0.5 leading-normal">
+                                <p>Merchant: <span className="text-zinc-300 font-semibold">{merchant}</span></p>
+                                <p>Category: <span className="text-zinc-300 font-semibold">{category}</span></p>
+                              </div>
+                              
+                              {/* Actions */}
+                              {savedStates[i] === "saved" ? (
+                                <div className="text-center text-[9px] text-emerald-400 font-bold py-1 bg-emerald-500/10 rounded-lg">
+                                  ✓ Saved to Ledger
+                                </div>
+                              ) : savedStates[i] === "cancelled" ? (
+                                <div className="text-center text-[9px] text-zinc-500 font-semibold py-1 bg-zinc-900 rounded-lg">
+                                  Cancelled
+                                </div>
+                              ) : (
+                                <div className="flex gap-2 pt-1">
+                                  <Button
+                                    size="sm"
+                                    disabled={isConfirming}
+                                    onClick={() => handleConfirmSave(i, amount, merchant, category, notes)}
+                                    className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-7 text-[10px] rounded-lg"
+                                  >
+                                    {isConfirming ? <Loader2 className="w-3 h-3 animate-spin" /> : "Save"}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleCancelSave(i)}
+                                    className="flex-1 border-zinc-800 text-zinc-400 hover:bg-zinc-900 h-7 text-[10px] rounded-lg"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              )}
                             </div>
-                          ) : savedStates[i] === "cancelled" ? (
-                            <div className="text-center text-[9px] text-zinc-500 font-semibold py-1 bg-zinc-900 rounded-lg">
-                              Cancelled
-                            </div>
-                          ) : (
-                            <div className="flex gap-2 pt-1">
-                              <Button
-                                size="sm"
-                                disabled={isConfirming}
-                                onClick={() => handleConfirmSave(i, amount, merchant, category, notes)}
-                                className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-7 text-[10px] rounded-lg"
-                              >
-                                {isConfirming ? <Loader2 className="w-3 h-3 animate-spin" /> : "Save"}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleCancelSave(i)}
-                                className="flex-1 border-zinc-800 text-zinc-400 hover:bg-zinc-900 h-7 text-[10px] rounded-lg"
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          )}
-                        </div>
+                          );
+                        })()}
                       </div>
-                    );
-                  })()}
+                    </div>
+                  </div>
+
+                  {/* Interactive Clickable Suggested Questions */}
+                  {isAssistant && suggestionsMatch && (
+                    <div className="flex flex-wrap gap-1.5 mt-1 justify-start pl-9 max-w-[85%]">
+                      {suggestionsMatch[1]
+                        .split("\n")
+                        .map((line) => line.replace(/^[-\*\s\d\.\)]+/g, "").trim())
+                        .filter(Boolean)
+                        .map((q, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleSend(q)}
+                            className="text-[10px] font-bold bg-zinc-950/90 hover:bg-indigo-600/15 border border-zinc-800 hover:border-indigo-500/40 text-zinc-400 hover:text-indigo-300 px-3 py-1.5 rounded-full transition-all text-left cursor-pointer flex items-center gap-1.5 shadow-sm"
+                          >
+                            <Sparkles className="w-2.5 h-2.5 text-indigo-400 flex-shrink-0" />
+                            <span>{q}</span>
+                          </button>
+                        ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Typing indicator */}
             {isPending && (
@@ -340,11 +396,8 @@ export function ChatDrawer() {
                   {QUICK_PROMPTS.map((prompt) => (
                     <button
                       key={prompt}
-                      onClick={() => {
-                        setInput(prompt);
-                        inputRef.current?.focus();
-                      }}
-                      className="text-left text-[11px] text-zinc-400 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl p-2.5 transition-colors leading-snug"
+                      onClick={() => handleSend(prompt)}
+                      className="text-left text-[11px] text-zinc-400 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-xl p-2.5 transition-colors leading-snug cursor-pointer"
                     >
                       {prompt}
                     </button>
@@ -371,9 +424,9 @@ export function ChatDrawer() {
                 style={{ minHeight: "1.25rem" }}
               />
               <button
-                onClick={handleSend}
+                onClick={() => handleSend()}
                 disabled={isPending || !input.trim()}
-                className="w-7 h-7 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all flex-shrink-0"
+                className="w-7 h-7 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all flex-shrink-0 cursor-pointer"
               >
                 {isPending ? (
                   <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
@@ -383,7 +436,7 @@ export function ChatDrawer() {
               </button>
             </div>
             <p className="text-center text-[9px] text-zinc-700 mt-1.5 select-none">
-              Powered by Anthropic Claude • FKO v1.0 • Press Enter to send
+              Powered by Anthropic Claude (claude-haiku-4-5) • Press Enter to send
             </p>
           </div>
         </div>
@@ -393,7 +446,7 @@ export function ChatDrawer() {
       <button
         onClick={() => setIsOpen(true)}
         aria-label="Open AI Copilot"
-        className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
+        className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
       >
         <MessageSquare className="w-6 h-6 text-white" />
         <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-zinc-950 animate-pulse" />
@@ -401,3 +454,4 @@ export function ChatDrawer() {
     </>
   );
 }
+

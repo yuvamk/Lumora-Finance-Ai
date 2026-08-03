@@ -132,12 +132,14 @@ export async function DailySummaryWidget({ userId }: DailySummaryWidgetProps) {
             <div className="space-y-3">
               {recentTxs && recentTxs.length > 0 ? (
                 recentTxs.map((t) => (
-                  <div key={t.id} className="flex justify-between items-center text-xs">
-                    <div>
-                      <h4 className="font-semibold text-zinc-200">{t.notes?.split(" | ")[0]?.replace("Purchased: ", "") || "Item"}</h4>
+                  <div key={t.id} className="flex justify-between items-center text-xs gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-zinc-200 truncate" title={t.notes || "Item"}>
+                        {t.notes?.split(" | ")[0]?.replace("Purchased: ", "") || "Item"}
+                      </h4>
                       <span className="text-[9px] text-zinc-500 font-mono">{t.date}</span>
                     </div>
-                    <span className={`font-mono font-bold ${t.type === "income" ? "text-emerald-400" : "text-zinc-300"}`}>
+                    <span className={`font-mono font-bold shrink-0 ${t.type === "income" ? "text-emerald-400" : "text-zinc-300"}`}>
                       {t.type === "income" ? "+" : "-"} ₹{t.amount}
                     </span>
                   </div>

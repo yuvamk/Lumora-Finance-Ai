@@ -101,23 +101,23 @@ export function GoalList({ initialGoals }: GoalListProps) {
                 key={g.goalId}
                 className="p-5 bg-zinc-900/60 border border-zinc-900 rounded-3xl space-y-4 relative group"
               >
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3.5">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex items-center gap-3.5 flex-1 min-w-0">
                     <div 
                       style={{ backgroundColor: `${g.color}15`, border: `1px solid ${g.color}35` }}
-                      className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-lg font-bold"
+                      className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-lg font-bold shrink-0"
                     >
                       {g.name.slice(0, 2).toUpperCase()}
                     </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-white leading-tight">{g.name}</h4>
-                      <span className="text-[10px] text-zinc-500 font-mono uppercase mt-0.5 block">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold text-white leading-tight truncate" title={g.name}>{g.name}</h4>
+                      <span className="text-[10px] text-zinc-500 font-mono uppercase mt-0.5 block truncate">
                         Priority: {g.priority}
                       </span>
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <span className="text-sm font-bold font-mono text-zinc-200">
                       ${g.totalSaved.toFixed(2)}
                     </span>

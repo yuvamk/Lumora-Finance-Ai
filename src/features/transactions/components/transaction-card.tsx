@@ -64,10 +64,10 @@ export function TransactionCard({
       }}
       role="button"
       tabIndex={0}
-      className="group flex items-center justify-between p-4 bg-zinc-900/60 border border-zinc-900 rounded-2xl hover:border-zinc-800 hover:bg-zinc-900/80 transition-all duration-200 cursor-pointer active:scale-[0.99] select-none focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+      className="group flex items-center justify-between p-4 bg-zinc-900/60 border border-zinc-900 rounded-2xl hover:border-zinc-800 hover:bg-zinc-900/80 transition-all duration-200 cursor-pointer active:scale-[0.99] select-none focus:outline-none focus:ring-1 focus:ring-indigo-500/50 group-hover:pr-11"
     >
       {/* Left Column: Icon & Metadata */}
-      <div className="flex items-center gap-3.5">
+      <div className="flex items-center gap-3.5 flex-1 min-w-0 mr-3">
         {/* Category Icon Container */}
         <div 
           style={{ backgroundColor: `${categoryColor}15`, border: `1px solid ${categoryColor}30` }}
@@ -77,23 +77,26 @@ export function TransactionCard({
         </div>
 
         {/* Merchant & Subtext */}
-        <div className="min-w-0">
-          <span className="text-sm font-semibold text-white block truncate leading-tight">
+        <div className="flex-1 min-w-0">
+          <span 
+            className="text-sm font-semibold text-white block truncate leading-tight"
+            title={transaction.notes || categoryName}
+          >
             {transaction.notes || categoryName}
           </span>
           <div className="flex flex-wrap items-center gap-1.5 mt-1">
-            <span className="text-[10px] text-zinc-500 font-medium">{categoryName}</span>
+            <span className="text-[10px] text-zinc-500 font-medium truncate max-w-[120px]">{categoryName}</span>
             {transaction.timezone !== "UTC" && (
-              <span className="text-[9px] text-zinc-600 uppercase font-mono">({transaction.timezone})</span>
+              <span className="text-[9px] text-zinc-600 uppercase font-mono shrink-0">({transaction.timezone})</span>
             )}
             {transaction.mood && (
-              <span className="text-[10px] bg-zinc-800/80 text-zinc-400 px-1.5 py-0.5 rounded-full font-mono flex items-center gap-0.5">
+              <span className="text-[10px] bg-zinc-800/80 text-zinc-400 px-1.5 py-0.5 rounded-full font-mono flex items-center gap-0.5 shrink-0 max-w-[100px] truncate">
                 <Heart className="w-2.5 h-2.5 text-zinc-500 shrink-0" />
-                {transaction.mood}
+                <span className="truncate">{transaction.mood}</span>
               </span>
             )}
             {transaction.status === "inbox" && (
-              <Badge className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] py-0 px-1 font-medium rounded-sm">
+              <Badge className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] py-0 px-1 font-medium rounded-sm shrink-0">
                 inbox
               </Badge>
             )}
@@ -102,7 +105,7 @@ export function TransactionCard({
       </div>
 
       {/* Right Column: Amount & Status badges */}
-      <div className="flex flex-col items-end gap-1 shrink-0 text-right">
+      <div className="flex flex-col items-end gap-1 shrink-0 text-right ml-auto">
         <span className={`text-sm font-semibold font-mono tracking-tight ${isIncome ? "text-emerald-400" : "text-zinc-200"}`}>
           {formattedAmount}
         </span>

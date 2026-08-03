@@ -4,10 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import { NotificationsRepository } from "@/features/notifications/repository";
 import { Bell, Search } from "lucide-react";
 
+import { NotificationEngine } from "@/features/notifications/services/notification-engine";
+
 export async function TopHeader() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
+
+  // Run automated alert checks for subscription renewals and budget limits
+  await NotificationEngine.checkAndGenerateAlerts(user.id).catch(() => {});
 
   const [profile, unreadCount] = await Promise.all([
     supabase.from("profiles").select("display_name").eq("id", user.id).single().then(r => r.data),
