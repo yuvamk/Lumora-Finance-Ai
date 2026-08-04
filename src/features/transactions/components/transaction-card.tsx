@@ -15,7 +15,8 @@ import {
   ShoppingBag,
   TrendingUp,
   ArrowLeftRight,
-  LucideIcon
+  LucideIcon,
+  Trash2
 } from "lucide-react";
 import { Transaction } from "../schemas";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,7 @@ interface TransactionCardProps {
   categoryIcon?: string;
   categoryColor?: string;
   onEdit?: (t: Transaction) => void;
+  onDelete?: (t: Transaction) => void;
 }
 
 export function TransactionCard({ 
@@ -47,7 +49,8 @@ export function TransactionCard({
   categoryName = "General",
   categoryIcon = "credit-card",
   categoryColor = "#6366f1",
-  onEdit 
+  onEdit,
+  onDelete
 }: TransactionCardProps) {
   const IconComponent = ICON_MAP[categoryIcon] || CreditCard;
   const isIncome = transaction.type === "income" || transaction.type === "refund";
@@ -64,7 +67,7 @@ export function TransactionCard({
       }}
       role="button"
       tabIndex={0}
-      className="group flex items-center justify-between p-4 bg-zinc-900/60 border border-zinc-900 rounded-2xl hover:border-zinc-800 hover:bg-zinc-900/80 transition-all duration-200 cursor-pointer active:scale-[0.99] select-none focus:outline-none focus:ring-1 focus:ring-indigo-500/50 group-hover:pr-11"
+      className="group flex items-center justify-between p-4 bg-zinc-900/60 border border-zinc-900 rounded-2xl hover:border-zinc-800 hover:bg-zinc-900/80 transition-all duration-200 cursor-pointer active:scale-[0.99] select-none focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
     >
       {/* Left Column: Icon & Metadata */}
       <div className="flex items-center gap-3.5 flex-1 min-w-0 mr-3">
@@ -104,19 +107,35 @@ export function TransactionCard({
         </div>
       </div>
 
-      {/* Right Column: Amount & Status badges */}
-      <div className="flex flex-col items-end gap-1 shrink-0 text-right ml-auto">
-        <span className={`text-sm font-semibold font-mono tracking-tight ${isIncome ? "text-emerald-400" : "text-zinc-200"}`}>
-          {formattedAmount}
-        </span>
-        <div className="flex items-center gap-1">
-          {transaction.is_recurring && (
-            <RefreshCw className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-          )}
-          {transaction.attachments && transaction.attachments.length > 0 && (
-            <Paperclip className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-          )}
+      {/* Right Column: Amount & Status badges + optional Delete button */}
+      <div className="flex items-center gap-3 shrink-0 ml-auto">
+        <div className="flex flex-col items-end gap-1 text-right">
+          <span className={`text-sm font-semibold font-mono tracking-tight ${isIncome ? "text-emerald-400" : "text-zinc-200"}`}>
+            {formattedAmount}
+          </span>
+          <div className="flex items-center gap-1">
+            {transaction.is_recurring && (
+              <RefreshCw className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+            )}
+            {transaction.attachments && transaction.attachments.length > 0 && (
+              <Paperclip className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+            )}
+          </div>
         </div>
+
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onDelete(transaction);
+            }}
+            className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 active:bg-red-500/20 rounded-xl transition-all duration-200 shrink-0"
+            title="Delete transaction"
+          >
+            <Trash2 className="w-4.5 h-4.5" />
+          </button>
+        )}
       </div>
     </div>
   );

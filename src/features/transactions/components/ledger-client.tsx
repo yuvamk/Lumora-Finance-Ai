@@ -2,13 +2,37 @@
 
 import React, { useState, useEffect, useTransition } from "react";
 import { 
-  Search, SlidersHorizontal, Trash2, Calendar, X, RotateCcw, Filter
+  Search, SlidersHorizontal, Trash2, Calendar, X, RotateCcw, Filter,
+  Home, Utensils, Car, Zap, Briefcase, TrendingUp, Gift, ArrowLeftRight, 
+  ShoppingBag, CreditCard, Clock, Heart, Globe, Paperclip, Info
 } from "lucide-react";
 import { Transaction } from "../schemas";
 import { TransactionCard } from "./transaction-card";
 import { deleteTransactionAction } from "../actions";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter 
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+
+const ICON_MAP: Record<string, any> = {
+  home: Home,
+  utensils: Utensils,
+  car: Car,
+  zap: Zap,
+  briefcase: Briefcase,
+  "trending-up": TrendingUp,
+  gift: Gift,
+  "arrow-left-right": ArrowLeftRight,
+  "shopping-bag": ShoppingBag,
+  "credit-card": CreditCard,
+};
 
 interface LedgerClientProps {
   initialTransactions: Transaction[];
@@ -20,6 +44,10 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("");
+
+  // Modals state
+  const [selectedTxDetails, setSelectedTxDetails] = useState<Transaction | null>(null);
+  const [txToDelete, setTxToDelete] = useState<Transaction | null>(null);
 
   // Advanced Filter state
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -146,12 +174,15 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
     groups[dateKey].push(t);
   });
 
-  const handleDelete = async (id: string) => {
+  const handleConfirmDelete = async () => {
+    if (!txToDelete) return;
+    const targetId = txToDelete.id;
     startTransition(async () => {
-      const response = await deleteTransactionAction(id);
+      const response = await deleteTransactionAction(targetId);
       if (response.success) {
-        setTransactions((prev) => prev.filter((t) => t.id !== id));
+        setTransactions((prev) => prev.filter((t) => t.id !== targetId));
         toast.success("Transaction deleted.");
+        setTxToDelete(null);
       } else {
         toast.error(response.error);
       }
@@ -394,20 +425,15 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
                 {items.map((t) => {
                   const category = categories.find((c) => c.id === t.category_id);
                   return (
-                    <div key={t.id} className="relative group">
-                      <TransactionCard
-                        transaction={t}
-                        categoryName={category?.name}
-                        categoryIcon={category?.icon}
-                        categoryColor={category?.color}
-                      />
-                      <button 
-                        onClick={() => handleDelete(t.id)}
-                        className="opacity-0 group-hover:opacity-100 absolute right-3 top-1/2 -translate-y-1/2 bg-red-950/60 hover:bg-red-900 border border-red-500/20 p-2 rounded-xl text-red-400 transition-all duration-200"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <TransactionCard
+                      key={t.id}
+                      transaction={t}
+                      categoryName={category?.name}
+                      categoryIcon={category?.icon}
+                      categoryColor={category?.color}
+                      onEdit={(tx) => setSelectedTxDetails(tx)}
+                      onDelete={(tx) => setTxToDelete(tx)}
+                    />
                   );
                 })}
               </div>
@@ -415,6 +441,237 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
           ))
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={txToDelete !== null} onOpenChange={(open) => { if (!open) setTxToDelete(null); }}>
+        <DialogContent className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 max-w-sm w-[90%] mx-auto text-white">
+          <DialogHeader className="text-left pb-2">
+            <DialogTitle className="text-lg font-bold text-red-500 flex items-center gap-2">
+              <Trash2 className="w-5 h-5" />
+              Delete Transaction?
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-400 mt-2">
+              Are you sure you want to delete this transaction? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          {txToDelete && (
+            <div className="bg-zinc-900/50 border border-zinc-850 rounded-2xl p-4 my-2 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div 
+                  style={{ 
+                    backgroundColor: `${categories.find(c => c.id === txToDelete.category_id)?.color || '#6366f1'}15`, 
+                    border: `1px solid ${categories.find(c => c.id === txToDelete.category_id)?.color || '#6366f1'}30` 
+                  }}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                >
+                  {(() => {
+                    const cat = categories.find(c => c.id === txToDelete.category_id);
+                    const IconComponent = cat?.icon ? (ICON_MAP[cat.icon] || CreditCard) : CreditCard;
+                    return <IconComponent style={{ color: cat?.color || '#6366f1' }} className="w-5 h-5" />;
+                  })()}
+                </div>
+                <div>
+                  <span className="text-sm font-semibold text-white block truncate max-w-[150px]">
+                    {txToDelete.notes || categories.find(c => c.id === txToDelete.category_id)?.name || "General"}
+                  </span>
+                  <span className="text-[10px] text-zinc-500 block">
+                    {txToDelete.date}
+                  </span>
+                </div>
+              </div>
+              <span className={`text-sm font-mono font-bold ${
+                txToDelete.type === "income" || txToDelete.type === "refund" ? "text-emerald-400" : "text-zinc-200"
+              }`}>
+                {txToDelete.type === "income" || txToDelete.type === "refund" ? "+" : "-"}
+                {txToDelete.currency_symbol}{txToDelete.amount.toFixed(2)}
+              </span>
+            </div>
+          )}
+
+          <DialogFooter className="mt-4 flex gap-2 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setTxToDelete(null)}
+              className="bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white rounded-xl text-xs px-4 py-2"
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              className="bg-red-650 hover:bg-red-500 text-white rounded-xl text-xs px-4 py-2 font-semibold"
+              disabled={isPending}
+            >
+              {isPending ? "Deleting..." : "Confirm Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transaction Details Modal */}
+      <Dialog open={selectedTxDetails !== null} onOpenChange={(open) => { if (!open) setSelectedTxDetails(null); }}>
+        <DialogContent className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 max-w-md w-[90%] mx-auto text-white">
+          <DialogHeader className="text-left pb-2">
+            <DialogTitle className="text-lg font-bold text-white flex items-center gap-2">
+              <Info className="w-5 h-5 text-indigo-400" />
+              Transaction Details
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500">
+              Complete details and metadata for this transaction.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedTxDetails && (
+            <div className="space-y-5 my-2">
+              {/* Large Amount and Merchant Hero */}
+              <div className="text-center py-6 px-4 bg-zinc-900/40 border border-zinc-900 rounded-2xl flex flex-col items-center justify-center gap-1">
+                <div 
+                  style={{ 
+                    backgroundColor: `${categories.find(c => c.id === selectedTxDetails.category_id)?.color || '#6366f1'}15`, 
+                    border: `1px solid ${categories.find(c => c.id === selectedTxDetails.category_id)?.color || '#6366f1'}30` 
+                  }}
+                  className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 mb-2"
+                >
+                  {(() => {
+                    const cat = categories.find(c => c.id === selectedTxDetails.category_id);
+                    const IconComponent = cat?.icon ? (ICON_MAP[cat.icon] || CreditCard) : CreditCard;
+                    return <IconComponent style={{ color: cat?.color || '#6366f1' }} className="w-6 h-6" />;
+                  })()}
+                </div>
+                <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                  {categories.find(c => c.id === selectedTxDetails.category_id)?.name || "General"}
+                </span>
+                <span className={`text-3xl font-extrabold font-mono tracking-tight ${
+                  selectedTxDetails.type === "income" || selectedTxDetails.type === "refund" ? "text-emerald-400" : "text-zinc-100"
+                }`}>
+                  {selectedTxDetails.type === "income" || selectedTxDetails.type === "refund" ? "+" : "-"}
+                  {selectedTxDetails.currency_symbol}{selectedTxDetails.amount.toFixed(2)}
+                </span>
+                <span className="text-sm font-semibold text-zinc-300 mt-1 max-w-xs truncate">
+                  {selectedTxDetails.notes || "No notes"}
+                </span>
+              </div>
+
+              {/* Grid of metadata */}
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div className="space-y-1">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Type</span>
+                  <Badge className={`capitalize py-0.5 px-2.5 rounded-full border text-[11px] font-semibold ${
+                    selectedTxDetails.type === "income" || selectedTxDetails.type === "refund"
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : "bg-zinc-800 text-zinc-300 border-zinc-700"
+                  }`}>
+                    {selectedTxDetails.type}
+                  </Badge>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Status</span>
+                  <Badge className={`capitalize py-0.5 px-2.5 rounded-full border text-[11px] font-semibold ${
+                    selectedTxDetails.status === "inbox"
+                      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                      : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+                  }`}>
+                    {selectedTxDetails.status}
+                  </Badge>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Date</span>
+                  <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5">
+                    <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+                    {new Date(selectedTxDetails.date).toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric"
+                    })}
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Time</span>
+                  <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5">
+                    <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                    {selectedTxDetails.time || "—"}
+                    {selectedTxDetails.timezone && (
+                      <span className="text-[9px] text-zinc-500 font-mono">({selectedTxDetails.timezone})</span>
+                    )}
+                  </span>
+                </div>
+
+                {selectedTxDetails.mood && (
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Mood / Category Flag</span>
+                    <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5 capitalize">
+                      <Heart className="w-3.5 h-3.5 text-zinc-500" />
+                      {selectedTxDetails.mood}
+                    </span>
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Source</span>
+                  <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5 capitalize">
+                    <Globe className="w-3.5 h-3.5 text-zinc-500" />
+                    {selectedTxDetails.source}
+                  </span>
+                </div>
+
+                {selectedTxDetails.is_recurring && (
+                  <div className="col-span-2 space-y-1 border-t border-zinc-900 pt-2">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Recurring Transaction</span>
+                    <span className="text-zinc-200 font-medium text-[11px] block bg-indigo-500/5 border border-indigo-500/10 p-2 rounded-xl">
+                      🔁 Recurs automatically: {selectedTxDetails.recurring_rule || "Standard Schedule"}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Description / Notes text */}
+              {selectedTxDetails.notes && (
+                <div className="space-y-1.5 border-t border-zinc-900 pt-3">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Description / Notes</span>
+                  <p className="bg-zinc-900/30 border border-zinc-900 rounded-xl p-3 text-zinc-300 text-xs leading-relaxed whitespace-pre-wrap">
+                    {selectedTxDetails.notes}
+                  </p>
+                </div>
+              )}
+
+              {/* Attachments preview */}
+              {selectedTxDetails.attachments && selectedTxDetails.attachments.length > 0 && (
+                <div className="space-y-2 border-t border-zinc-900 pt-3">
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Attachments</span>
+                  <div className="flex flex-col gap-1.5">
+                    {selectedTxDetails.attachments.map((url, idx) => (
+                      <a
+                        key={idx}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-400 hover:text-indigo-300 text-xs flex items-center gap-1.5 truncate bg-zinc-900/60 p-2 rounded-xl border border-zinc-850 hover:border-zinc-800 transition-all"
+                      >
+                        <Paperclip className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                        Attachment #{idx + 1}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="mt-4 flex justify-end">
+            <Button
+              onClick={() => setSelectedTxDetails(null)}
+              className="bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs px-4 py-2 w-full sm:w-auto"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
