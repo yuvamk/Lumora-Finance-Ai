@@ -25,7 +25,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="App navigation"
-      className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-800/60"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/40 backdrop-blur-xl border-t border-white/[0.08]"
     >
       <div className="max-w-2xl mx-auto flex items-stretch pb-safe">
         {navItems.map(({ href, label, icon: Icon }) => {
@@ -35,12 +35,12 @@ export function BottomNav() {
               key={href}
               href={href}
               className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-1 transition-colors group ${
-                isActive ? "text-indigo-400" : "text-zinc-500 hover:text-zinc-300"
+                isActive ? "text-indigo-400" : "text-zinc-500 hover:text-zinc-200"
               }`}
             >
               <span
                 className={`relative flex items-center justify-center w-8 h-8 rounded-2xl transition-all duration-200 ${
-                  isActive ? "bg-indigo-500/15" : "group-hover:bg-zinc-800/60"
+                  isActive ? "bg-indigo-500/15" : "group-hover:bg-white/[0.04]"
                 }`}
               >
                 <Icon

@@ -36,10 +36,10 @@ const quickActions = [
 
 export function QuickActionsWidget() {
   return (
-    <Card className="bg-zinc-900 border-zinc-800 rounded-3xl">
+    <Card className="bg-white/[0.03] backdrop-blur-xl border-white/[0.08] rounded-3xl">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-zinc-500" />
+          <Zap className="w-4 h-4 text-indigo-400 animate-pulse" />
           <CardTitle className="text-sm font-bold text-white">Quick Navigation</CardTitle>
         </div>
       </CardHeader>

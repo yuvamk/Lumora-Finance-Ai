@@ -26,23 +26,23 @@ export async function BalanceWidget({ userId }: BalanceWidgetProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Current Balance Card */}
-      <Card className="bg-zinc-900 border-zinc-800 rounded-3xl overflow-hidden relative">
+      <Card className="bg-white/[0.03] backdrop-blur-xl border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.04] transition-all rounded-3xl overflow-hidden relative">
         <CardContent className="p-6">
-          <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Net Worth Balance</span>
+          <span className="text-[10px] uppercase font-bold text-zinc-550 tracking-wider">Net Worth Balance</span>
           <h2 className="text-3xl font-bold text-white mt-1.5 font-mono">
             {symbol}{summary.currentBalance.toFixed(2)}
           </h2>
-          <div className="flex items-center gap-1.5 mt-3 text-[10px] text-zinc-400 font-medium">
-            <TrendingUp className="w-3.5 h-3.5 text-zinc-500" />
+          <div className="flex items-center gap-1.5 mt-3 text-[10px] text-zinc-550 font-medium">
+            <TrendingUp className="w-3.5 h-3.5 text-zinc-650" />
             <span>Telemetry: {summary.metrics.databaseTimeMs}ms query speed</span>
           </div>
         </CardContent>
       </Card>
-
+ 
       {/* Monthly Income Card */}
-      <Card className="bg-zinc-900 border-zinc-800 rounded-3xl">
+      <Card className="bg-white/[0.03] backdrop-blur-xl border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.04] transition-all rounded-3xl">
         <CardContent className="p-6">
-          <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Month Income</span>
+          <span className="text-[10px] uppercase font-bold text-zinc-550 tracking-wider">Month Income</span>
           <div className="flex items-baseline justify-between mt-1.5">
             <h2 className="text-3xl font-bold text-white font-mono">
               {symbol}{summary.monthIncome.toFixed(2)}
@@ -54,11 +54,11 @@ export async function BalanceWidget({ userId }: BalanceWidgetProps) {
           </div>
         </CardContent>
       </Card>
-
+ 
       {/* Monthly Expense Card */}
-      <Card className="bg-zinc-900 border-zinc-800 rounded-3xl">
+      <Card className="bg-white/[0.03] backdrop-blur-xl border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.04] transition-all rounded-3xl">
         <CardContent className="p-6">
-          <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Month Expense</span>
+          <span className="text-[10px] uppercase font-bold text-zinc-550 tracking-wider">Month Expense</span>
           <div className="flex items-baseline justify-between mt-1.5">
             <h2 className="text-3xl font-bold text-white font-mono">
               {symbol}{summary.monthExpense.toFixed(2)}
@@ -78,7 +78,7 @@ export function BalanceWidgetSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="h-28 bg-zinc-900 border border-zinc-800 rounded-3xl animate-pulse" />
+        <div key={i} className="h-28 bg-white/[0.02] border border-white/[0.06] rounded-3xl animate-pulse" />
       ))}
     </div>
   );

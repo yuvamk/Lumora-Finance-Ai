@@ -158,4 +158,26 @@ export interface AIContextContract {
   financialKnowledge: FinancialKnowledgeObject;
   score: Omit<FinancialScoreContract, "metrics">;
   recentUserActions: string[];
+  wealthPlan?: {
+    runwayMonths: number;
+    averageMonthlyExpenses: number;
+    totalCash: number;
+    totalAssets: number;
+    totalDebts: number;
+    netWealth: number;
+    safetyScore: number;
+    fireNumber: number;
+    fireProgress: number;
+    assets: any[];
+    debts: any[];
+  };
+  secondBrain?: {
+    recentThoughts: string[];
+    dailyHabits: any[];
+    coreValues: string[];
+    personalRules: string[];
+    goals: string[];
+    recentWellbeing: any;
+    memories: any[];
+  };
 }

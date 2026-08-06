@@ -11,7 +11,7 @@ export async function ScoreWidget({ userId }: ScoreWidgetProps) {
   const scoreData = await FinanceEngine.getFinancialScore(userId);
 
   return (
-    <Card className="bg-zinc-900 border-zinc-800 rounded-3xl overflow-hidden">
+    <Card className="bg-white/[0.03] backdrop-blur-xl border-white/[0.08] rounded-3xl overflow-hidden">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
@@ -27,7 +27,7 @@ export async function ScoreWidget({ userId }: ScoreWidgetProps) {
 
       <CardContent className="p-6 pt-0 space-y-6">
         {/* Large Score Indicator */}
-        <div className="flex items-center gap-6 bg-zinc-950/40 border border-zinc-850 p-4.5 rounded-2xl">
+        <div className="flex items-center gap-6 bg-black/25 border border-white/[0.05] p-4.5 rounded-2xl">
           <div className="w-18 h-18 rounded-full bg-indigo-500/10 border-2 border-indigo-500/30 flex items-center justify-center shrink-0">
             <span className="text-3xl font-extrabold text-white font-mono leading-none">{scoreData.overallScore}</span>
           </div>
@@ -51,7 +51,7 @@ export async function ScoreWidget({ userId }: ScoreWidgetProps) {
             return (
               <div 
                 key={key} 
-                className="p-4 bg-zinc-950/20 border border-zinc-900 rounded-xl flex flex-col gap-2 hover:border-zinc-850 transition-colors"
+                className="p-4 bg-white/[0.01] border border-white/[0.04] rounded-xl flex flex-col gap-2 hover:border-white/[0.1] transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-zinc-200 capitalize">
@@ -67,7 +67,7 @@ export async function ScoreWidget({ userId }: ScoreWidgetProps) {
                 <p className="text-[11px] text-zinc-400 leading-relaxed">
                   {details.reason}
                 </p>
-                <div className="flex items-start gap-1.5 mt-1 bg-zinc-900/40 p-2 rounded-lg border border-zinc-850">
+                <div className="flex items-start gap-1.5 mt-1 bg-black/15 p-2 rounded-lg border border-white/[0.04]">
                   {isGood ? (
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
                   ) : (
@@ -88,6 +88,6 @@ export async function ScoreWidget({ userId }: ScoreWidgetProps) {
 
 export function ScoreWidgetSkeleton() {
   return (
-    <Card className="bg-zinc-900 border-zinc-800 rounded-3xl h-80 animate-pulse" />
+    <Card className="bg-white/[0.02] border-white/[0.06] rounded-3xl h-80 animate-pulse" />
   );
 }

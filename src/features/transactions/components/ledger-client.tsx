@@ -4,11 +4,12 @@ import React, { useState, useEffect, useTransition } from "react";
 import { 
   Search, SlidersHorizontal, Trash2, Calendar, X, RotateCcw, Filter,
   Home, Utensils, Car, Zap, Briefcase, TrendingUp, Gift, ArrowLeftRight, 
-  ShoppingBag, CreditCard, Clock, Heart, Globe, Paperclip, Info
+  ShoppingBag, CreditCard, Clock, Heart, Globe, Paperclip, Info,
+  Loader2, ChevronDown
 } from "lucide-react";
 import { Transaction } from "../schemas";
 import { TransactionCard } from "./transaction-card";
-import { deleteTransactionAction } from "../actions";
+import { deleteTransactionAction, updateTransactionAction } from "../actions";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { 
@@ -20,6 +21,9 @@ import {
   DialogFooter 
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 const ICON_MAP: Record<string, any> = {
   home: Home,
@@ -48,6 +52,16 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
   // Modals state
   const [selectedTxDetails, setSelectedTxDetails] = useState<Transaction | null>(null);
   const [txToDelete, setTxToDelete] = useState<Transaction | null>(null);
+
+  // Editing state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editAmount, setEditAmount] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [editCategoryId, setEditCategoryId] = useState("");
+  const [editType, setEditType] = useState<string>("");
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
+  const [editMood, setEditMood] = useState<string>("");
 
   // Advanced Filter state
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -189,25 +203,69 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
     });
   };
 
+  const handleStartEdit = () => {
+    if (!selectedTxDetails) return;
+    setEditAmount(selectedTxDetails.amount.toString());
+    setEditNotes(selectedTxDetails.notes || "");
+    setEditCategoryId(selectedTxDetails.category_id || "");
+    setEditType(selectedTxDetails.type);
+    setEditDate(selectedTxDetails.date);
+    setEditTime(selectedTxDetails.time?.slice(0, 5) || "");
+    setEditMood(selectedTxDetails.mood || "neutral");
+    setIsEditing(true);
+  };
+
+  const handleSaveChanges = async () => {
+    if (!selectedTxDetails) return;
+    if (!editAmount || isNaN(Number(editAmount)) || Number(editAmount) <= 0) {
+      toast.error("Please enter a valid positive amount.");
+      return;
+    }
+
+    startTransition(async () => {
+      const response = await updateTransactionAction(selectedTxDetails.id, {
+        amount: Number(editAmount),
+        notes: editNotes,
+        category_id: editCategoryId || undefined,
+        type: editType as any,
+        date: editDate,
+        time: editTime ? `${editTime}:00` : null,
+        mood: editMood as any || null,
+      });
+
+      if (response.success) {
+        toast.success("Transaction updated successfully!");
+        const updatedTx = response.data;
+        setTransactions((prev) =>
+          prev.map((t) => (t.id === selectedTxDetails.id ? updatedTx : t))
+        );
+        setSelectedTxDetails(updatedTx);
+        setIsEditing(false);
+      } else {
+        toast.error(response.error);
+      }
+    });
+  };
+
   return (
-    <div className="flex flex-col bg-zinc-950">
+    <div className="flex flex-col bg-transparent">
       {/* Top sticky filters and Search header — sits below the 56px TopHeader (top-14) */}
-      <div className="sticky top-14 bg-zinc-950/95 backdrop-blur-md z-30 px-4 py-3 border-b border-zinc-900 flex flex-col gap-3">
+      <div className="sticky top-14 bg-zinc-950/40 backdrop-blur-xl z-30 px-4 py-3 border-b border-white/[0.08] flex flex-col gap-3">
         <div className="flex items-center gap-2">
           {/* Reusable Filter Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4.5 h-4.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4.5 h-4.5 text-zinc-550 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               type="text" 
               placeholder="Search merchant, tags, notes..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-base md:text-sm bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-9.5 pr-8 text-white focus:outline-none focus:border-zinc-700 placeholder-zinc-500 transition-colors"
+              className="w-full text-base md:text-sm bg-white/[0.03] border border-white/[0.08] rounded-xl py-2.5 pl-9.5 pr-8 text-white focus:outline-none focus:border-white/[0.15] placeholder-zinc-550 transition-colors"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-550 hover:text-zinc-300"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -219,7 +277,7 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
             className={`relative border p-2.5 h-auto rounded-xl transition-all ${
               isFilterOpen || activeFilterCount > 0
                 ? "bg-indigo-600 border-indigo-500 text-white hover:bg-indigo-500"
-                : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white hover:border-zinc-700"
+                : "border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white hover:border-white/[0.15]"
             }`}
             title="Toggle Filters"
           >
@@ -231,7 +289,7 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
             )}
           </Button>
         </div>
-
+ 
         {/* Composable Horizontal Tabs Filters */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
           {["", "expense", "income", "transfer", "refund"].map((type) => (
@@ -240,19 +298,19 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
               onClick={() => setFilterType(type)}
               className={`text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-all shrink-0 capitalize ${
                 filterType === type 
-                  ? "bg-white text-zinc-950 border-white"
-                  : "bg-zinc-900 text-zinc-400 border-zinc-850 hover:border-zinc-800"
+                  ? "bg-white text-zinc-950 border-white font-bold"
+                  : "bg-white/[0.02] text-zinc-400 border-white/[0.06] hover:border-white/[0.12] hover:text-zinc-200"
               }`}
             >
               {type || "All"}
             </button>
           ))}
         </div>
-
+ 
         {/* Expandable Advanced Filter Panel */}
         {isFilterOpen && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+          <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-indigo-400" />
                 <span className="text-xs font-bold text-white uppercase tracking-wider">Advanced Filters</span>
@@ -269,13 +327,13 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
                 )}
                 <button 
                   onClick={() => setIsFilterOpen(false)}
-                  className="text-zinc-500 hover:text-white p-1"
+                  className="text-zinc-550 hover:text-white p-1"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
-
+ 
             {/* Category Filter */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Category</label>
@@ -285,7 +343,7 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
                   className={`text-[11px] font-medium px-2.5 py-1 rounded-lg border transition-all ${
                     !selectedCategory 
                       ? "bg-indigo-600/20 border-indigo-500/50 text-indigo-300 font-semibold"
-                      : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                      : "bg-white/[0.01] border border-white/[0.06] text-zinc-450 hover:border-white/[0.12]"
                   }`}
                 >
                   All Categories
@@ -297,7 +355,7 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
                     className={`text-[11px] font-medium px-2.5 py-1 rounded-lg border transition-all ${
                       selectedCategory === cat.id
                         ? "bg-indigo-600/20 border-indigo-500/50 text-indigo-300 font-semibold"
-                        : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                        : "bg-white/[0.01] border border-white/[0.06] text-zinc-450 hover:border-white/[0.12]"
                     }`}
                   >
                     {cat.name}
@@ -305,7 +363,7 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
                 ))}
               </div>
             </div>
-
+ 
             {/* Timeframe & Sort Controls */}
             <div className="grid grid-cols-2 gap-3">
               {/* Timeframe */}
@@ -314,31 +372,31 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
                 <select
                   value={dateRange}
                   onChange={(e) => setDateRange(e.target.value as any)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700"
+                  className="w-full bg-zinc-950/80 border border-white/[0.08] rounded-xl px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-white/[0.15]"
                 >
-                  <option value="all">All Time</option>
-                  <option value="today">Today</option>
-                  <option value="week">Past 7 Days</option>
-                  <option value="month">Past 30 Days</option>
+                  <option value="all" className="bg-zinc-950 text-white">All Time</option>
+                  <option value="today" className="bg-zinc-950 text-white">Today</option>
+                  <option value="week" className="bg-zinc-950 text-white">Past 7 Days</option>
+                  <option value="month" className="bg-zinc-950 text-white">Past 30 Days</option>
                 </select>
               </div>
-
+ 
               {/* Sort By */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Sort By</label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700"
+                  className="w-full bg-zinc-950/80 border border-white/[0.08] rounded-xl px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-white/[0.15]"
                 >
-                  <option value="newest">Date: Newest First</option>
-                  <option value="oldest">Date: Oldest First</option>
-                  <option value="amount_high">Amount: Highest First</option>
-                  <option value="amount_low">Amount: Lowest First</option>
+                  <option value="newest" className="bg-zinc-950 text-white">Date: Newest First</option>
+                  <option value="oldest" className="bg-zinc-950 text-white">Date: Oldest First</option>
+                  <option value="amount_high" className="bg-zinc-950 text-white">Amount: Highest First</option>
+                  <option value="amount_low" className="bg-zinc-950 text-white">Amount: Lowest First</option>
                 </select>
               </div>
             </div>
-
+ 
             {/* Status & Amount range */}
             <div className="grid grid-cols-2 gap-3">
               {/* Status */}
@@ -347,14 +405,14 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as any)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700"
+                  className="w-full bg-zinc-950/80 border border-white/[0.08] rounded-xl px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-white/[0.15]"
                 >
-                  <option value="all">All Records</option>
-                  <option value="recurring">Recurring Only</option>
-                  <option value="inbox">Inbox Pending</option>
+                  <option value="all" className="bg-zinc-950 text-white">All Records</option>
+                  <option value="recurring" className="bg-zinc-950 text-white">Recurring Only</option>
+                  <option value="inbox" className="bg-zinc-950 text-white">Inbox Pending</option>
                 </select>
               </div>
-
+ 
               {/* Amount Range */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Amount Range</label>
@@ -364,15 +422,15 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
                     placeholder="Min"
                     value={minAmount}
                     onChange={(e) => setMinAmount(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700"
+                    className="w-full bg-zinc-950/80 border border-white/[0.08] rounded-xl px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-white/[0.15]"
                   />
-                  <span className="text-zinc-600 text-xs">-</span>
+                  <span className="text-zinc-650 text-xs">-</span>
                   <input
                     type="number"
                     placeholder="Max"
                     value={maxAmount}
                     onChange={(e) => setMaxAmount(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-zinc-700"
+                    className="w-full bg-zinc-950/80 border border-white/[0.08] rounded-xl px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-white/[0.15]"
                   />
                 </div>
               </div>
@@ -431,7 +489,10 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
                       categoryName={category?.name}
                       categoryIcon={category?.icon}
                       categoryColor={category?.color}
-                      onEdit={(tx) => setSelectedTxDetails(tx)}
+                      onEdit={(tx) => {
+                        setSelectedTxDetails(tx);
+                        setIsEditing(false);
+                      }}
                       onDelete={(tx) => setTxToDelete(tx)}
                     />
                   );
@@ -444,7 +505,7 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
 
       {/* Delete Confirmation Modal */}
       <Dialog open={txToDelete !== null} onOpenChange={(open) => { if (!open) setTxToDelete(null); }}>
-        <DialogContent className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 max-w-sm w-[90%] mx-auto text-white">
+        <DialogContent className="bg-zinc-950/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-6 max-w-sm w-[90%] mx-auto text-white">
           <DialogHeader className="text-left pb-2">
             <DialogTitle className="text-lg font-bold text-red-500 flex items-center gap-2">
               <Trash2 className="w-5 h-5" />
@@ -511,164 +572,304 @@ export function LedgerClient({ initialTransactions, categories }: LedgerClientPr
 
       {/* Transaction Details Modal */}
       <Dialog open={selectedTxDetails !== null} onOpenChange={(open) => { if (!open) setSelectedTxDetails(null); }}>
-        <DialogContent className="bg-zinc-950 border border-zinc-850 rounded-3xl p-6 max-w-md w-[90%] mx-auto text-white">
+        <DialogContent className="bg-zinc-950/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-6 max-w-md w-[90%] mx-auto text-white">
           <DialogHeader className="text-left pb-2">
             <DialogTitle className="text-lg font-bold text-white flex items-center gap-2">
               <Info className="w-5 h-5 text-indigo-400" />
-              Transaction Details
+              {isEditing ? "Edit Transaction" : "Transaction Details"}
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-500">
-              Complete details and metadata for this transaction.
+              {isEditing 
+                ? "Modify details for this transaction record." 
+                : "Complete details and metadata for this transaction."}
             </DialogDescription>
           </DialogHeader>
 
           {selectedTxDetails && (
-            <div className="space-y-5 my-2">
-              {/* Large Amount and Merchant Hero */}
-              <div className="text-center py-6 px-4 bg-zinc-900/40 border border-zinc-900 rounded-2xl flex flex-col items-center justify-center gap-1">
-                <div 
-                  style={{ 
-                    backgroundColor: `${categories.find(c => c.id === selectedTxDetails.category_id)?.color || '#6366f1'}15`, 
-                    border: `1px solid ${categories.find(c => c.id === selectedTxDetails.category_id)?.color || '#6366f1'}30` 
-                  }}
-                  className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 mb-2"
-                >
-                  {(() => {
-                    const cat = categories.find(c => c.id === selectedTxDetails.category_id);
-                    const IconComponent = cat?.icon ? (ICON_MAP[cat.icon] || CreditCard) : CreditCard;
-                    return <IconComponent style={{ color: cat?.color || '#6366f1' }} className="w-6 h-6" />;
-                  })()}
-                </div>
-                <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                  {categories.find(c => c.id === selectedTxDetails.category_id)?.name || "General"}
-                </span>
-                <span className={`text-3xl font-extrabold font-mono tracking-tight ${
-                  selectedTxDetails.type === "income" || selectedTxDetails.type === "refund" ? "text-emerald-400" : "text-zinc-100"
-                }`}>
-                  {selectedTxDetails.type === "income" || selectedTxDetails.type === "refund" ? "+" : "-"}
-                  {selectedTxDetails.currency_symbol}{selectedTxDetails.amount.toFixed(2)}
-                </span>
-                <span className="text-sm font-semibold text-zinc-300 mt-1 max-w-xs truncate">
-                  {selectedTxDetails.notes || "No notes"}
-                </span>
-              </div>
-
-              {/* Grid of metadata */}
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="space-y-1">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Type</span>
-                  <Badge className={`capitalize py-0.5 px-2.5 rounded-full border text-[11px] font-semibold ${
-                    selectedTxDetails.type === "income" || selectedTxDetails.type === "refund"
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                      : "bg-zinc-800 text-zinc-300 border-zinc-700"
-                  }`}>
-                    {selectedTxDetails.type}
-                  </Badge>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Status</span>
-                  <Badge className={`capitalize py-0.5 px-2.5 rounded-full border text-[11px] font-semibold ${
-                    selectedTxDetails.status === "inbox"
-                      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                      : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
-                  }`}>
-                    {selectedTxDetails.status}
-                  </Badge>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Date</span>
-                  <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5">
-                    <Calendar className="w-3.5 h-3.5 text-zinc-500" />
-                    {new Date(selectedTxDetails.date).toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric"
-                    })}
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Time</span>
-                  <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5">
-                    <Clock className="w-3.5 h-3.5 text-zinc-500" />
-                    {selectedTxDetails.time || "—"}
-                    {selectedTxDetails.timezone && (
-                      <span className="text-[9px] text-zinc-500 font-mono">({selectedTxDetails.timezone})</span>
-                    )}
-                  </span>
-                </div>
-
-                {selectedTxDetails.mood && (
-                  <div className="space-y-1">
-                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Mood / Category Flag</span>
-                    <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5 capitalize">
-                      <Heart className="w-3.5 h-3.5 text-zinc-500" />
-                      {selectedTxDetails.mood}
-                    </span>
+            isEditing ? (
+              <div className="space-y-4 my-2 text-left">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-amount" className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Amount (₹)</Label>
+                    <Input 
+                      id="edit-amount" 
+                      type="number" 
+                      step="any" 
+                      value={editAmount} 
+                      onChange={(e) => setEditAmount(e.target.value)} 
+                      className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-sm focus:border-zinc-700" 
+                      required 
+                    />
                   </div>
-                )}
-
-                <div className="space-y-1">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Source</span>
-                  <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5 capitalize">
-                    <Globe className="w-3.5 h-3.5 text-zinc-500" />
-                    {selectedTxDetails.source}
-                  </span>
-                </div>
-
-                {selectedTxDetails.is_recurring && (
-                  <div className="col-span-2 space-y-1 border-t border-zinc-900 pt-2">
-                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Recurring Transaction</span>
-                    <span className="text-zinc-200 font-medium text-[11px] block bg-indigo-500/5 border border-indigo-500/10 p-2 rounded-xl">
-                      🔁 Recurs automatically: {selectedTxDetails.recurring_rule || "Standard Schedule"}
-                    </span>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-type" className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Type</Label>
+                    <select
+                      id="edit-type"
+                      value={editType}
+                      onChange={(e) => setEditType(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 px-3 text-sm focus:ring-0 focus:outline-none cursor-pointer"
+                    >
+                      <option value="expense">Expense</option>
+                      <option value="income">Income</option>
+                      <option value="transfer">Transfer</option>
+                      <option value="refund">Refund</option>
+                    </select>
                   </div>
-                )}
-              </div>
-
-              {/* Description / Notes text */}
-              {selectedTxDetails.notes && (
-                <div className="space-y-1.5 border-t border-zinc-900 pt-3">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Description / Notes</span>
-                  <p className="bg-zinc-900/30 border border-zinc-900 rounded-xl p-3 text-zinc-300 text-xs leading-relaxed whitespace-pre-wrap">
-                    {selectedTxDetails.notes}
-                  </p>
                 </div>
-              )}
 
-              {/* Attachments preview */}
-              {selectedTxDetails.attachments && selectedTxDetails.attachments.length > 0 && (
-                <div className="space-y-2 border-t border-zinc-900 pt-3">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Attachments</span>
-                  <div className="flex flex-col gap-1.5">
-                    {selectedTxDetails.attachments.map((url, idx) => (
-                      <a
-                        key={idx}
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-indigo-400 hover:text-indigo-300 text-xs flex items-center gap-1.5 truncate bg-zinc-900/60 p-2 rounded-xl border border-zinc-850 hover:border-zinc-800 transition-all"
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-category" className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Category</Label>
+                    <div className="relative">
+                      <select
+                        id="edit-category"
+                        value={editCategoryId}
+                        onChange={(e) => setEditCategoryId(e.target.value)}
+                        className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 pl-3 pr-8 text-sm focus:ring-0 focus:outline-none appearance-none cursor-pointer"
                       >
-                        <Paperclip className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                        Attachment #{idx + 1}
-                      </a>
-                    ))}
+                        <option value="" className="bg-zinc-950 text-zinc-400">Select Category</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id} className="bg-zinc-950 text-white">{c.name}</option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-zinc-400">
+                        <ChevronDown className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-mood" className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Mood</Label>
+                    <select
+                      id="edit-mood"
+                      value={editMood}
+                      onChange={(e) => setEditMood(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-800 text-white rounded-xl h-11 px-3 text-sm focus:ring-0 focus:outline-none cursor-pointer"
+                    >
+                      <option value="neutral">Neutral 😐</option>
+                      <option value="happy">Happy 😊</option>
+                      <option value="stressed">Stressed 😰</option>
+                      <option value="regretful">Regretful 😔</option>
+                      <option value="necessary">Necessary ✅</option>
+                    </select>
                   </div>
                 </div>
-              )}
-            </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-date" className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Date</Label>
+                    <Input 
+                      id="edit-date" 
+                      type="date" 
+                      value={editDate} 
+                      onChange={(e) => setEditDate(e.target.value)} 
+                      className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-sm focus:border-zinc-700" 
+                      required 
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-time" className="text-xs text-zinc-400 font-bold uppercase tracking-wider">Time</Label>
+                    <Input 
+                      id="edit-time" 
+                      type="time" 
+                      value={editTime} 
+                      onChange={(e) => setEditTime(e.target.value)} 
+                      className="bg-zinc-900 border-zinc-800 text-white rounded-xl h-11 text-sm focus:border-zinc-700" 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-notes" className="text-xs text-zinc-400 font-bold uppercase tracking-wider block">Description / Notes</Label>
+                  <Textarea 
+                    id="edit-notes" 
+                    placeholder="Details..." 
+                    value={editNotes} 
+                    onChange={(e) => setEditNotes(e.target.value)} 
+                    className="bg-zinc-900 border-zinc-800 text-white rounded-xl text-xs min-h-[80px] focus:border-zinc-700" 
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-5 my-2">
+                {/* Large Amount and Merchant Hero */}
+                <div className="text-center py-6 px-4 bg-zinc-900/40 border border-zinc-900 rounded-2xl flex flex-col items-center justify-center gap-1 w-full overflow-hidden">
+                  <div 
+                    style={{ 
+                      backgroundColor: `${categories.find(c => c.id === selectedTxDetails.category_id)?.color || '#6366f1'}15`, 
+                      border: `1px solid ${categories.find(c => c.id === selectedTxDetails.category_id)?.color || '#6366f1'}30` 
+                    }}
+                    className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 mb-2"
+                  >
+                    {(() => {
+                      const cat = categories.find(c => c.id === selectedTxDetails.category_id);
+                      const IconComponent = cat?.icon ? (ICON_MAP[cat.icon] || CreditCard) : CreditCard;
+                      return <IconComponent style={{ color: cat?.color || '#6366f1' }} className="w-6 h-6" />;
+                    })()}
+                  </div>
+                  <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                    {categories.find(c => c.id === selectedTxDetails.category_id)?.name || "General"}
+                  </span>
+                  <span className={`text-3xl font-extrabold font-mono tracking-tight ${
+                    selectedTxDetails.type === "income" || selectedTxDetails.type === "refund" ? "text-emerald-400" : "text-zinc-100"
+                  }`}>
+                    {selectedTxDetails.type === "income" || selectedTxDetails.type === "refund" ? "+" : "-"}
+                    {selectedTxDetails.currency_symbol}{selectedTxDetails.amount.toFixed(2)}
+                  </span>
+                  <span className="text-sm font-semibold text-zinc-300 mt-1 max-w-full break-words text-center px-2">
+                    {selectedTxDetails.notes || "No notes"}
+                  </span>
+                </div>
+
+                {/* Grid of metadata */}
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Type</span>
+                    <Badge className={`capitalize py-0.5 px-2.5 rounded-full border text-[11px] font-semibold ${
+                      selectedTxDetails.type === "income" || selectedTxDetails.type === "refund"
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                        : "bg-zinc-800 text-zinc-300 border-zinc-700"
+                    }`}>
+                      {selectedTxDetails.type}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Status</span>
+                    <Badge className={`capitalize py-0.5 px-2.5 rounded-full border text-[11px] font-semibold ${
+                      selectedTxDetails.status === "inbox"
+                        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                        : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+                    }`}>
+                      {selectedTxDetails.status}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Date</span>
+                    <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5">
+                      <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+                      {new Date(selectedTxDetails.date).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric"
+                      })}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Time</span>
+                    <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5">
+                      <Clock className="w-3.5 h-3.5 text-zinc-500" />
+                      {selectedTxDetails.time || "—"}
+                      {selectedTxDetails.timezone && (
+                        <span className="text-[9px] text-zinc-500 font-mono">({selectedTxDetails.timezone})</span>
+                      )}
+                    </span>
+                  </div>
+
+                  {selectedTxDetails.mood && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Mood / Category Flag</span>
+                      <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5 capitalize">
+                        <Heart className="w-3.5 h-3.5 text-zinc-500" />
+                        {selectedTxDetails.mood}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Source</span>
+                    <span className="text-zinc-200 font-medium flex items-center gap-1.5 mt-0.5 capitalize">
+                      <Globe className="w-3.5 h-3.5 text-zinc-500" />
+                      {selectedTxDetails.source}
+                    </span>
+                  </div>
+
+                  {selectedTxDetails.is_recurring && (
+                    <div className="col-span-2 space-y-1 border-t border-zinc-900 pt-2">
+                      <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Recurring Transaction</span>
+                      <span className="text-zinc-200 font-medium text-[11px] block bg-indigo-500/5 border border-indigo-500/10 p-2 rounded-xl">
+                        🔁 Recurs automatically: {selectedTxDetails.recurring_rule || "Standard Schedule"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Description / Notes text */}
+                {selectedTxDetails.notes && (
+                  <div className="space-y-1.5 border-t border-zinc-900 pt-3 w-full overflow-hidden">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Description / Notes</span>
+                    <p className="bg-zinc-900/30 border border-zinc-900 rounded-xl p-3 text-zinc-300 text-xs leading-relaxed whitespace-pre-wrap break-words overflow-hidden">
+                      {selectedTxDetails.notes}
+                    </p>
+                  </div>
+                )}
+
+                {/* Attachments preview */}
+                {selectedTxDetails.attachments && selectedTxDetails.attachments.length > 0 && (
+                  <div className="space-y-2 border-t border-zinc-900 pt-3 w-full">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold block">Attachments</span>
+                    <div className="flex flex-col gap-1.5">
+                      {selectedTxDetails.attachments.map((url, idx) => (
+                        <a
+                          key={idx}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-400 hover:text-indigo-300 text-xs flex items-center gap-1.5 truncate bg-zinc-900/60 p-2 rounded-xl border border-zinc-850 hover:border-zinc-800 transition-all w-full"
+                        >
+                          <Paperclip className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                          Attachment #{idx + 1}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
           )}
 
-          <DialogFooter className="mt-4 flex justify-end">
-            <Button
-              onClick={() => setSelectedTxDetails(null)}
-              className="bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs px-4 py-2 w-full sm:w-auto"
-            >
-              Close
-            </Button>
+          <DialogFooter className="mt-4 flex flex-row gap-2 justify-end">
+            {isEditing ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditing(false)}
+                  className="bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white rounded-xl text-xs px-4 py-2 flex-1 sm:flex-none"
+                  disabled={isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveChanges}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs px-4 py-2 font-semibold flex-1 sm:flex-none flex items-center justify-center gap-1.5"
+                  disabled={isPending}
+                >
+                  {isPending ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    "Save Changes"
+                  )}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleStartEdit}
+                  className="bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white rounded-xl text-xs px-4 py-2 flex-1 sm:flex-none"
+                >
+                  Edit
+                </Button>
+                <Button
+                  onClick={() => setSelectedTxDetails(null)}
+                  className="bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs px-4 py-2 flex-1 sm:flex-none"
+                >
+                  Close
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

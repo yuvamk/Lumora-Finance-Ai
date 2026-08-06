@@ -362,6 +362,79 @@ ${budgetLines}
 </suggested-questions>`;
   }
 
+  // 3a. Check Runway or Emergency Fund Intent
+  if (lower.includes("runway") || lower.includes("emergency") || lower.includes("survival")) {
+    const wp = context.wealthPlan || {};
+    return `### Emergency Fund & Runway Analysis
+ 
+- **Survival Runway**: **${wp.runwayMonths || 0} months**
+- **Average Monthly Expenses**: ₹${(wp.averageMonthlyExpenses || 35000).toLocaleString()}
+- **Total Cash Reserves**: ₹${(wp.totalCash || 0).toLocaleString()}
+- **Safety Score**: **${wp.safetyScore || 0}/100**
+ 
+**Status Advisory**: ${(wp.runwayMonths || 0) >= 6 ? "Excellent safety buffer! You have more than the standard 6 months of expenses in cash. You can confidently allocate new savings towards investments." : "Your liquid cash buffer is below the recommended 6-month safety threshold. Prioritize saving more cash before investing."}
+ 
+<suggested-questions>
+- Tell me about my asset allocations
+- What is my debt paydown suggestion?
+- Show my FIRE retirement progress
+</suggested-questions>`;
+  }
+ 
+  // 3b. Check Asset Allocation/Rebalancing Intent
+  if (lower.includes("allocation") || lower.includes("rebalanc") || lower.includes("asset")) {
+    const wp = context.wealthPlan || {};
+    const assetLines = (wp.assets || []).map((a: any) => `- **${a.name}** (${a.type.toUpperCase()}): Current: ₹${a.value.toLocaleString()} | Target: ${a.target}%`).join("\n") || "- No manual assets registered yet.";
+    return `### Asset Allocation & Rebalancing Insights
+ 
+${assetLines}
+ 
+**Strategic Action**: Check the **Allocator** tab to see rebalancing operations needed to align with your risk targets.
+ 
+<suggested-questions>
+- Show my emergency runway
+- Show my FIRE retirement progress
+- What is my debt paydown suggestion?
+</suggested-questions>`;
+  }
+ 
+  // 3c. Check Debt Paydown Intent
+  if (lower.includes("debt") || lower.includes("loan") || lower.includes("interest") || lower.includes("credit card")) {
+    const wp = context.wealthPlan || {};
+    const totalDebt = wp.totalDebts || 0;
+    const debtLines = (wp.debts || []).map((d: any) => `- **${d.name}**: ₹${d.balance.toLocaleString()} (Rate: ${d.rate}%)`).join("\n") || "- No manual debts registered.";
+    return `### Debt Paydown Suggestions (Avalanche Plan)
+ 
+- **Total Outstanding Debt**: ₹${totalDebt.toLocaleString()}
+ 
+**Registered Liabilities**:
+${debtLines}
+ 
+**AI Recommendation**: We suggest sorting debts by interest rate and putting all spare surplus towards the highest rate first. Check the **Debt Paydown** tab to see your custom payment plan.
+ 
+<suggested-questions>
+- Show my emergency runway
+- Show my asset allocations
+</suggested-questions>`;
+  }
+ 
+  // 3d. Check FIRE retirement Intent
+  if (lower.includes("fire") || lower.includes("retire") || lower.includes("independence")) {
+    const wp = context.wealthPlan || {};
+    return `### Financial Independence (FIRE) Target Plan
+ 
+- **Target Retirement Fund (FIRE Number)**: ₹${(wp.fireNumber || 0).toLocaleString()}
+- **Net Wealth Progress**: ₹${(wp.netWealth || 0).toLocaleString()}
+- **Retirement Progress**: **${wp.fireProgress || 0}% Completed**
+ 
+*Note: This calculation uses the rule of 25 (Annual expenses multiplied by 25) based on your ledger's spending history.*
+ 
+<suggested-questions>
+- Show my emergency runway
+- Tell me about my asset allocations
+</suggested-questions>`;
+  }
+ 
   // 4. Default Comprehensive Data Analytics Summary
   const topCatLines = categories.slice(0, 3).map((c: any) => `- **${c.categoryName || 'Other'}**: ₹${c.totalSpent} (${c.percentage}%)`).join("\n") || "- No category data recorded yet.";
   

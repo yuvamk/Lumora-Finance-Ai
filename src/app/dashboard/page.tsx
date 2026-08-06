@@ -27,35 +27,39 @@ import {
   DailySummaryWidgetSkeleton 
 } from "@/features/dashboard/components/daily-summary-widget";
 import { QuickActionsWidget } from "@/features/dashboard/components/quick-actions-widget";
-
+import { SecondBrainWidgets } from "@/features/dashboard/components/second-brain-widgets";
+ 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
+ 
   if (!user) {
     redirect("/auth/login");
   }
-
+ 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-6 pb-28">
+    <div className="min-h-screen bg-transparent text-white p-4 md:p-6 pb-28">
       {/* Header Panel */}
       <header className="mb-6 select-none">
         <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Dashboard</span>
         <h1 className="text-2xl font-bold tracking-tight">Overview</h1>
       </header>
-
+ 
       {/* Main Grid Widgets Container */}
       <div className="space-y-4">
         {/* Row 1: Balance Summaries */}
         <Suspense fallback={<BalanceWidgetSkeleton />}>
           <BalanceWidget userId={user.id} />
         </Suspense>
-
+ 
         {/* Row 1.5: Today's Daily Analytics and AI Daily summary */}
         <Suspense fallback={<DailySummaryWidgetSkeleton />}>
           <DailySummaryWidget userId={user.id} />
         </Suspense>
-
+ 
+        {/* Row 1.7: Life Log & Second Brain Widgets */}
+        <SecondBrainWidgets userId={user.id} />
+ 
         {/* Row 2: Quick Navigation Actions */}
         <QuickActionsWidget />
 

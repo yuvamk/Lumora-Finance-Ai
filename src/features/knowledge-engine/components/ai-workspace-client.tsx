@@ -12,20 +12,44 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { createTransactionAction, parseExpenseNlpAction } from "@/features/transactions/actions";
 import { ReceiptScanner } from "@/features/ocr/components/receipt-scanner";
+import { useSearchParams } from "next/navigation";
 
+import { RunwayFireTab } from "@/features/wealth/components/runway-fire-tab";
+import { AssetAllocatorTab } from "@/features/wealth/components/asset-allocator-tab";
+import { DebtPaydownTab } from "@/features/wealth/components/debt-paydown-tab";
+import { PaperTradingTab } from "@/features/wealth/components/paper-trading-tab";
+import { SpendingAuditorTab } from "@/features/wealth/components/spending-auditor-tab";
+import { getWealthSummaryAction, type WealthSummary } from "@/features/wealth/actions";
+ 
+import { BrainDumpTab } from "@/features/second-brain/components/brain-dump-tab";
+import { HabitTrackerTab } from "@/features/second-brain/components/habit-tracker-tab";
+import { VisionBoardTab } from "@/features/second-brain/components/vision-board-tab";
+import { WellbeingTab } from "@/features/second-brain/components/wellbeing-tab";
+import { MemoryVaultTab } from "@/features/second-brain/components/memory-vault-tab";
+import { getBrainSummaryAction, type SecondBrainSummary } from "@/features/second-brain/actions";
+ 
 interface AiWorkspaceClientProps {
   userId: string;
   initialFko: any;
   initialScore: any;
 }
-
+ 
 export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorkspaceClientProps) {
   const [activeTab, setActiveTab] = useState<
-    "chat" | "insights" | "predictions" | "recommendations" | "assistant" | "scanner" | "history"
+    "chat" | "runway" | "allocator" | "debt" | "sandbox" | "auditor" | "brainDump" | "habits" | "vision" | "wellbeing" | "memories" | "insights" | "predictions" | "recommendations" | "assistant" | "scanner" | "history"
   >("chat");
 
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [isPending, startTransition] = useTransition();
+ 
+  const searchParams = useSearchParams();
+ 
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab) {
+      setActiveTab(tab as any);
+    }
+  }, [searchParams]);
 
   // Chat states
   const [chatInput, setChatInput] = useState("");
@@ -46,7 +70,43 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
   const [nlpExtracted, setNlpExtracted] = useState<any>(null);
 
   const supabase = createClient();
-
+ 
+  const [wealthData, setWealthData] = useState<WealthSummary | null>(null);
+  const [fireSettings, setFireSettings] = useState({ target_retirement_age: 55, expected_return_rate: 12.0 });
+ 
+  const loadWealthDetails = async () => {
+    const res = await getWealthSummaryAction();
+    if (res.success && res.data) {
+      setWealthData(res.data);
+    }
+    try {
+      const { data } = await supabase.from("wealth_fire_settings").select("*").eq("user_id", userId).single();
+      if (data) {
+        setFireSettings({
+          target_retirement_age: data.target_retirement_age,
+          expected_return_rate: Number(data.expected_return_rate),
+        });
+      }
+    } catch (_) {}
+  };
+ 
+  useEffect(() => {
+    loadWealthDetails();
+  }, []);
+ 
+  const [brainData, setBrainData] = useState<SecondBrainSummary | null>(null);
+ 
+  const loadBrainDetails = async () => {
+    const res = await getBrainSummaryAction();
+    if (res.success && res.data) {
+      setBrainData(res.data);
+    }
+  };
+ 
+  useEffect(() => {
+    loadBrainDetails();
+  }, []);
+ 
   // Load categories and chat history
   useEffect(() => {
     async function loadData() {
@@ -241,7 +301,7 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
     <div className="space-y-6">
       {/* Workspace Tabs */}
       <div className="flex border-b border-zinc-900 pb-px overflow-x-auto no-scrollbar">
-        {(["chat", "insights", "predictions", "recommendations", "assistant", "scanner", "history"] as const).map((tab) => (
+        {(["chat", "runway", "allocator", "debt", "sandbox", "auditor", "brainDump", "habits", "vision", "wellbeing", "memories", "insights", "predictions", "recommendations", "assistant", "scanner", "history"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -251,16 +311,32 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
                 : "border-transparent text-zinc-500 hover:text-zinc-300"
             }`}
           >
-            {tab === "chat" ? "AI Chat" : tab === "insights" ? "Insights" : tab === "predictions" ? "Predictions" : tab === "recommendations" ? "Savings" : tab === "assistant" ? "Logger" : tab === "scanner" ? "OCR scan" : "History logs"}
+            {tab === "chat" ? "AI Chat"
+              : tab === "runway" ? "Runway & FIRE"
+              : tab === "allocator" ? "Asset Allocator"
+              : tab === "debt" ? "Debt Plan"
+              : tab === "sandbox" ? "Sandbox"
+              : tab === "auditor" ? "AI Auditor"
+              : tab === "brainDump" ? "Brain Dump"
+              : tab === "habits" ? "Habits"
+              : tab === "vision" ? "Vision Board"
+              : tab === "wellbeing" ? "Well-Being"
+              : tab === "memories" ? "Memory Vault"
+              : tab === "insights" ? "Insights"
+              : tab === "predictions" ? "Predictions"
+              : tab === "recommendations" ? "Savings"
+              : tab === "assistant" ? "Logger"
+              : tab === "scanner" ? "OCR scan"
+              : "History logs"}
           </button>
         ))}
       </div>
 
       {/* TAB 1: Conversational Chat */}
       {activeTab === "chat" && (
-        <div className="bg-zinc-900/40 border border-zinc-900 rounded-3xl p-4 flex flex-col h-[520px]">
+        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 flex flex-col h-[520px]">
           {/* Header Bar with Clear Chat button */}
-          <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3 mb-3 flex-shrink-0">
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 mb-3 flex-shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
@@ -270,7 +346,7 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
             <button
               onClick={handleClearChat}
               title="Clear chat history"
-              className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400 hover:text-rose-400 bg-zinc-900 hover:bg-rose-500/10 border border-zinc-800 hover:border-rose-500/30 px-3 py-1.5 rounded-xl transition-all cursor-pointer select-none"
+              className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400 hover:text-rose-400 bg-white/[0.01] hover:bg-rose-500/10 border border-white/[0.06] hover:border-rose-500/30 px-3 py-1.5 rounded-xl transition-all cursor-pointer select-none"
             >
               <Trash2 className="w-3.5 h-3.5 text-zinc-400 group-hover:text-rose-400" />
               <span>Clear Chat</span>
@@ -298,7 +374,7 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
                     <div className={`px-3.5 py-2.5 rounded-2xl leading-relaxed ${
                       msg.role === "user"
                         ? "bg-indigo-600 text-white rounded-tr-none text-xs"
-                        : "bg-zinc-900 text-zinc-200 rounded-tl-none border border-zinc-800"
+                        : "bg-white/[0.03] backdrop-blur-xl text-zinc-200 rounded-tl-none border border-white/[0.08]"
                     }`}>
                       {isAssistant ? (
                         <div className="space-y-1.5 text-left">
@@ -311,7 +387,7 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
                             const notes = ctaMatch[4];
 
                             return (
-                              <div className="mt-3 p-3 bg-zinc-950/80 rounded-xl border border-zinc-800/80 space-y-2">
+                              <div className="mt-3 p-3 bg-black/40 rounded-xl border border-white/[0.05] space-y-2">
                                 <div className="flex justify-between items-center text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
                                   <span>Confirm transaction</span>
                                   <span className="font-mono text-indigo-400 text-xs">₹{amount}</span>
@@ -343,7 +419,7 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
                                       size="sm"
                                       variant="outline"
                                       onClick={() => setSavedStates((prev) => ({ ...prev, [i]: "cancelled" }))}
-                                      className="flex-1 border-zinc-800 text-zinc-400 hover:bg-zinc-900 h-7 text-[10px] rounded-lg"
+                                      className="flex-1 border-white/[0.08] text-zinc-400 hover:bg-white/[0.02] h-7 text-[10px] rounded-lg"
                                     >
                                       Cancel
                                     </Button>
@@ -365,7 +441,7 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
                           <button
                             key={idx}
                             onClick={() => handleSendChat(q)}
-                            className="text-[10px] font-bold bg-zinc-950/80 hover:bg-indigo-600/10 border border-zinc-800 hover:border-indigo-500/30 text-zinc-400 hover:text-indigo-400 px-3 py-1.5 rounded-full transition-all text-left cursor-pointer"
+                            className="text-[10px] font-bold bg-black/30 hover:bg-indigo-600/10 border border-white/[0.04] hover:border-indigo-500/30 text-zinc-400 hover:text-indigo-400 px-3 py-1.5 rounded-full transition-all text-left cursor-pointer"
                           >
                             {q}
                           </button>
@@ -389,7 +465,7 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
           </div>
 
           {/* Input Panel */}
-          <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 rounded-2xl px-3.5 py-2.5 focus-within:border-indigo-500/50 transition-colors">
+          <div className="flex items-center gap-2 bg-black/20 border border-white/[0.08] rounded-2xl px-3.5 py-2.5 focus-within:border-indigo-500/50 transition-colors">
             <input
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
@@ -407,12 +483,12 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
           </div>
         </div>
       )}
-
+ 
       {/* TAB 2: Insights */}
       {activeTab === "insights" && (
         <div className="space-y-4">
           {/* Health Score Summary Card */}
-          <div className="bg-gradient-to-r from-indigo-950/60 to-violet-950/60 border border-indigo-800/40 rounded-3xl p-5">
+          <div className="bg-gradient-to-r from-indigo-950/30 to-violet-950/30 border border-indigo-900/20 rounded-3xl p-5">
             <p className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider mb-3 font-semibold">Financial Health Score</p>
             <div className="flex items-center gap-4">
               <div className={`text-5xl font-black ${gradeColor}`}>{initialScore.grade}</div>
@@ -421,17 +497,17 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
                   <span className="text-xs text-zinc-400">Overall Score</span>
                   <span className="text-sm font-bold text-white">{initialScore.overallScore}/100</span>
                 </div>
-                <div className="h-2 bg-zinc-850 rounded-full overflow-hidden">
+                <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden">
                   <div className={`h-full rounded-full bg-indigo-500`} style={{ width: `${initialScore.overallScore}%` }} />
                 </div>
               </div>
             </div>
           </div>
-
+ 
           <div className="space-y-3">
             <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Generated Insights</p>
             {initialFko.insights.map((ins: any) => (
-              <div key={ins.id} className="bg-zinc-900 border border-zinc-800/80 rounded-2xl p-4">
+              <div key={ins.id} className="bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.03] transition-all rounded-2xl p-4">
                 <div className="flex justify-between items-start gap-2 mb-2">
                   <h4 className="text-xs font-bold text-white leading-snug">{ins.title}</h4>
                   <span className="text-[9px] uppercase font-bold px-2 py-0.5 rounded-full border border-indigo-500/20 text-indigo-400 bg-indigo-500/5">
@@ -453,11 +529,11 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
             {initialFko.predictions.map((p: any, i: number) => {
               const isDownward = p.trend === "downward";
               return (
-                <div key={i} className="bg-zinc-900 border border-zinc-800/80 rounded-2xl p-4 flex items-center justify-between gap-4">
+                <div key={i} className="bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.03] transition-all rounded-2xl p-4 flex items-center justify-between gap-4">
                   <div>
                     <span className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider">{p.metric}</span>
                     <h4 className="text-base font-bold text-white mt-1">₹{p.predictedValue.toLocaleString()}</h4>
-                    <p className="text-[10px] text-zinc-600 mt-0.5">{p.timeframe}</p>
+                    <p className="text-[10px] text-zinc-650 mt-0.5">{p.timeframe}</p>
                   </div>
                   <span className={`text-xl font-bold font-mono ${isDownward ? "text-emerald-400" : "text-rose-400"}`}>
                     {isDownward ? "↓" : "↑"}
@@ -474,7 +550,7 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
         <div className="space-y-3">
           <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Savings Opportunities</p>
           {initialFko.recommendations.map((r: any) => (
-            <div key={r.id} className="bg-zinc-900 border border-zinc-800/80 rounded-2xl p-4 flex justify-between items-center gap-4">
+            <div key={r.id} className="bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.03] transition-all rounded-2xl p-4 flex justify-between items-center gap-4">
               <div>
                 <h4 className="text-xs font-bold text-white">{r.title}</h4>
                 <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">{r.description}</p>
@@ -550,6 +626,95 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
         </div>
       )}
 
+      {/* TAB 1.5: Runway & FIRE Target */}
+      {activeTab === "runway" && (
+        <RunwayFireTab 
+          data={wealthData || {
+            runwayMonths: 0,
+            averageMonthlyExpenses: 35000,
+            totalCash: 0,
+            totalAssets: 0,
+            totalDebts: 0,
+            netWealth: 0,
+            safetyScore: 0,
+            fireNumber: 10500000,
+            fireProgress: 0
+          }}
+          fireSettings={fireSettings}
+          onRefresh={loadWealthDetails}
+        />
+      )}
+ 
+      {/* TAB 1.6: Asset Allocator */}
+      {activeTab === "allocator" && (
+        <AssetAllocatorTab 
+          assets={wealthData?.rebalanceSuggestions || []}
+          totalAssets={wealthData?.totalAssets || 0}
+          onRefresh={loadWealthDetails}
+        />
+      )}
+ 
+      {/* TAB 1.7: Debt Paydown */}
+      {activeTab === "debt" && (
+        <DebtPaydownTab 
+          debts={wealthData?.debtSuggestions || []}
+          totalDebts={wealthData?.totalDebts || 0}
+          onRefresh={loadWealthDetails}
+        />
+      )}
+ 
+      {/* TAB 1.8: Sandbox Trading */}
+      {activeTab === "sandbox" && (
+        <PaperTradingTab 
+          onRefresh={loadWealthDetails}
+        />
+      )}
+ 
+      {/* TAB 1.9: AI Auditor */}
+      {activeTab === "auditor" && (
+        <SpendingAuditorTab />
+      )}
+ 
+      {/* TAB 2.1: Brain Dump */}
+      {activeTab === "brainDump" && (
+        <BrainDumpTab 
+          dumps={brainData?.dumps || []} 
+          onRefresh={loadBrainDetails} 
+        />
+      )}
+ 
+      {/* TAB 2.2: Habit Tracker */}
+      {activeTab === "habits" && (
+        <HabitTrackerTab 
+          habits={brainData?.habits || []} 
+          onRefresh={loadBrainDetails} 
+        />
+      )}
+ 
+      {/* TAB 2.3: Vision Board */}
+      {activeTab === "vision" && (
+        <VisionBoardTab 
+          coreValues={brainData?.coreValues || { values_list: [], personal_rules: [], goals: [] }} 
+          onRefresh={loadBrainDetails} 
+        />
+      )}
+ 
+      {/* TAB 2.4: Well-Being Tracker */}
+      {activeTab === "wellbeing" && (
+        <WellbeingTab 
+          logs={brainData?.wellbeing || []} 
+          onRefresh={loadBrainDetails} 
+        />
+      )}
+ 
+      {/* TAB 2.5: Memory Vault */}
+      {activeTab === "memories" && (
+        <MemoryVaultTab 
+          memories={brainData?.memories || []} 
+          onRefresh={loadBrainDetails} 
+        />
+      )}
+ 
       {/* TAB 6: Receipt Scanner */}
       {activeTab === "scanner" && (
         <div className="space-y-4">
@@ -563,14 +728,14 @@ export function AiWorkspaceClient({ userId, initialFko, initialScore }: AiWorksp
         <div className="space-y-3">
           <div className="flex justify-between items-center pb-1">
             <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Recent AI logs</span>
-            <History className="w-4 h-4 text-zinc-500" />
+            <History className="w-4 h-4 text-zinc-550" />
           </div>
           <div className="space-y-2">
             {messages.filter(m => m.role === "user").slice(-6).map((msg, idx) => (
-              <div key={idx} className="bg-zinc-900/60 border border-zinc-900 rounded-2xl p-4 flex justify-between items-center text-xs">
+              <div key={idx} className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 flex justify-between items-center text-xs">
                 <div>
                   <h4 className="font-bold text-zinc-300">"{msg.content}"</h4>
-                  <p className="text-[10px] text-zinc-500 mt-1 font-mono">Parsed query statement</p>
+                  <p className="text-[10px] text-zinc-550 mt-1 font-mono">Parsed query statement</p>
                 </div>
                 <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Parsed</span>
               </div>
@@ -599,7 +764,7 @@ function parseInlineMarkdown(text: string): React.ReactNode[] {
       parts.push(<strong key={idx} className="font-bold text-white">{part.slice(2, -2)}</strong>);
     } else if (part.startsWith("`") && part.endsWith("`")) {
       parts.push(
-        <code key={idx} className="bg-zinc-950 px-1.5 py-0.5 rounded font-mono text-[10px] text-indigo-300 border border-zinc-800">
+        <code key={idx} className="bg-black/50 px-1.5 py-0.5 rounded font-mono text-[10px] text-indigo-300 border border-white/[0.05]">
           {part.slice(1, -1)}
         </code>
       );
@@ -635,11 +800,11 @@ function renderChatContent(content: string) {
     inTable = false;
 
     return (
-      <div key={`table-${key}`} className="my-2.5 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-950/50">
+      <div key={`table-${key}`} className="my-2.5 overflow-x-auto rounded-xl border border-white/[0.06] bg-black/45">
         <table className="w-full text-[11px] text-left border-collapse">
           {headerRow && (
             <thead>
-              <tr className="border-b border-zinc-800 bg-zinc-900/60 text-zinc-400">
+              <tr className="border-b border-white/[0.06] bg-white/[0.02] text-zinc-400">
                 {headerRow.map((col, idx) => (
                   <th key={idx} className="px-3 py-1.5 font-bold uppercase tracking-wider">{col.trim()}</th>
                 ))}
@@ -648,7 +813,7 @@ function renderChatContent(content: string) {
           )}
           <tbody>
             {bodyRows.map((row, rowIdx) => (
-              <tr key={rowIdx} className="border-b border-zinc-800/40 last:border-0 hover:bg-zinc-900/20">
+              <tr key={rowIdx} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]">
                 {row.map((col, colIdx) => (
                   <td key={colIdx} className="px-3 py-1.5 text-zinc-300 font-medium">{col.trim()}</td>
                 ))}
@@ -681,7 +846,7 @@ function renderChatContent(content: string) {
       );
     } else if (trimmed.startsWith("##")) {
       parsedElements.push(
-        <h3 key={idx} className="text-xs font-bold text-indigo-300 mt-4 mb-2 border-b border-zinc-800/40 pb-0.5">{trimmed.replace(/^##\s*/, "")}</h3>
+        <h3 key={idx} className="text-xs font-bold text-indigo-300 mt-4 mb-2 border-b border-white/[0.04] pb-0.5">{trimmed.replace(/^##\s*/, "")}</h3>
       );
     } else if (trimmed.startsWith("#")) {
       parsedElements.push(
@@ -720,7 +885,7 @@ function renderChatContent(content: string) {
 
 function DotWaveLoader() {
   return (
-    <div className="flex gap-1 items-center px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-2xl rounded-tl-none w-14 justify-center">
+    <div className="flex gap-1 items-center px-3.5 py-2.5 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl rounded-tl-none w-14 justify-center">
       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-[bounce_1.4s_infinite_ease-in-out_both] [animation-delay:-0.32s]" />
       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-[bounce_1.4s_infinite_ease-in-out_both] [animation-delay:-0.16s]" />
       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-[bounce_1.4s_infinite_ease-in-out_both]" />

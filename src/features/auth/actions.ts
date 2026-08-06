@@ -83,52 +83,188 @@ export async function signOutAction(): Promise<void> {
   redirect("/auth/login");
 }
 
-/** Send password reset email */
-export async function forgotPasswordAction(
-  _prev: ActionResponse,
+import { EmailService } from "@/lib/email/service";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { env } from "@/lib/env";
+ 
+// Temporary in-memory OTP cache
+interface OtpEntry {
+  code: string;
+  expiresAt: number;
+  verified: boolean;
+}
+ 
+const globalForOtp = global as unknown as {
+  otpStore: Map<string, OtpEntry> | undefined;
+};
+ 
+const otpStore = globalForOtp.otpStore ?? new Map<string, OtpEntry>();
+ 
+if (process.env.NODE_ENV !== "production") {
+  globalForOtp.otpStore = otpStore;
+}
+ 
+export function createAdminClient() {
+  return createSupabaseClient(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+}
+ 
+/** Send password reset OTP */
+export async function sendOtpAction(
+  _prev: ActionResponse<{ email: string } | null>,
   formData: FormData
 ): Promise<ActionResponse<{ email: string }>> {
   const email = formData.get("email") as string;
   if (!email || !email.includes("@")) {
     return { success: false, error: "Please enter a valid email address." };
   }
-
-  const supabase = await createClient();
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${appUrl}/auth/reset-password`,
+ 
+  // Generate 6-digit numeric OTP code
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
+ 
+  // Store in cache
+  otpStore.set(email.toLowerCase(), { code: otp, expiresAt, verified: false });
+ 
+  // Send email via Nodemailer
+  const emailResult = await EmailService.sendEmail({
+    to: email,
+    subject: "Lumora Finance AI - Password Reset OTP",
+    title: "Password Reset Verification Code",
+    message: `You requested a password reset code for your Lumora Finance AI account.\n\nPlease use the 6-digit One-Time Password (OTP) verification code shown below to verify your identity. The code will expire in 15 minutes.`,
+    actionText: `OTP Code: ${otp}`,
+    actionUrl: `${env.NEXT_PUBLIC_APP_URL}/auth/forgot-password`
   });
-
-  if (error) {
-    return { success: false, error: error.message };
+ 
+  if (!emailResult.success) {
+    return { success: false, error: emailResult.error || "Failed to send reset email. Contact support." };
   }
-
+ 
   return { success: true, data: { email } };
 }
-
+ 
+/** Verify password reset OTP */
+export async function verifyPasswordResetOtpAction(
+  _prev: ActionResponse<{ email: string; otp: string } | null>,
+  formData: FormData
+): Promise<ActionResponse<{ email: string; otp: string }>> {
+  const email = formData.get("email") as string;
+  const otp = formData.get("otp") as string;
+ 
+  if (!email || !otp) {
+    return { success: false, error: "Email and OTP code are required." };
+  }
+ 
+  const entry = otpStore.get(email.toLowerCase());
+  if (!entry) {
+    return { success: false, error: "No active OTP request found for this email." };
+  }
+ 
+  if (Date.now() > entry.expiresAt) {
+    otpStore.delete(email.toLowerCase());
+    return { success: false, error: "OTP has expired. Please request a new one." };
+  }
+ 
+  if (entry.code !== otp.trim()) {
+    return { success: false, error: "Invalid OTP code. Please check and try again." };
+  }
+ 
+  // Mark as verified in store
+  otpStore.set(email.toLowerCase(), { ...entry, verified: true });
+ 
+  return { success: true, data: { email, otp: otp.trim() } };
+}
+ 
+/** Reset password via verified OTP */
+export async function resetPasswordWithOtpAction(
+  _prev: ActionResponse,
+  formData: FormData
+): Promise<ActionResponse<null>> {
+  const email = formData.get("email") as string;
+  const otp = formData.get("otp") as string;
+  const password = formData.get("password") as string;
+  const confirm = formData.get("confirm_password") as string;
+ 
+  if (!email || !otp || !password) {
+    return { success: false, error: "Missing required password inputs." };
+  }
+ 
+  if (password.length < 8) {
+    return { success: false, error: "Password must be at least 8 characters." };
+  }
+ 
+  if (password !== confirm) {
+    return { success: false, error: "Passwords do not match." };
+  }
+ 
+  const entry = otpStore.get(email.toLowerCase());
+  if (!entry || !entry.verified || entry.code !== otp.trim()) {
+    return { success: false, error: "OTP verification expired or invalid. Please try again." };
+  }
+ 
+  try {
+    const adminClient = createAdminClient();
+    
+    // 1. Fetch user by email to get user UUID
+    const { data: { users }, error: getError } = await adminClient.auth.admin.listUsers();
+    if (getError) {
+      return { success: false, error: getError.message };
+    }
+ 
+    const targetUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    if (!targetUser) {
+      return { success: false, error: "No user account found matching this email address." };
+    }
+ 
+    // 2. Update user password
+    const { error: updateError } = await adminClient.auth.admin.updateUserById(targetUser.id, {
+      password: password
+    });
+ 
+    if (updateError) {
+      return { success: false, error: updateError.message };
+    }
+ 
+    // 3. Clear store
+    otpStore.delete(email.toLowerCase());
+ 
+    return { success: true, data: null };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to update password." };
+  }
+}
+ 
 /** Reset password (requires active session from email link) */
 export async function resetPasswordAction(
   _prev: ActionResponse,
   formData: FormData
-): Promise<ActionResponse> {
+): Promise<ActionResponse<null>> {
   const password = formData.get("password") as string;
   const confirm = formData.get("confirm_password") as string;
-
+ 
   if (!password || password.length < 8) {
     return { success: false, error: "Password must be at least 8 characters." };
   }
   if (password !== confirm) {
     return { success: false, error: "Passwords do not match." };
   }
-
+ 
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password });
-
+ 
   if (error) {
     return { success: false, error: error.message };
   }
-
-  redirect("/auth/login?reset=success");
+ 
+  return { success: true, data: null };
 }
 
 /** Update user profile */

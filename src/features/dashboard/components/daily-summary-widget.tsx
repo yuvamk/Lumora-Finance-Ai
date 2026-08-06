@@ -82,36 +82,36 @@ export async function DailySummaryWidget({ userId }: DailySummaryWidgetProps) {
     <div className="space-y-4">
       {/* Today's & Monthly Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="bg-zinc-900/60 border-zinc-800/80 rounded-2xl">
+        <Card className="bg-white/[0.02] border-white/[0.05] rounded-2xl">
           <CardContent className="p-4">
-            <span className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider">Today's Spending</span>
+            <span className="text-[9px] uppercase font-bold text-zinc-550 tracking-wider">Today's Spending</span>
             <p className="text-base font-bold text-rose-400 mt-1 font-mono">₹{todaySpending}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900/60 border-zinc-800/80 rounded-2xl">
+        <Card className="bg-white/[0.02] border-white/[0.05] rounded-2xl">
           <CardContent className="p-4">
-            <span className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider">Today's Income</span>
+            <span className="text-[9px] uppercase font-bold text-zinc-550 tracking-wider">Today's Income</span>
             <p className="text-base font-bold text-emerald-400 mt-1 font-mono">₹{todayIncome}</p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900/60 border-zinc-800/80 rounded-2xl">
+        <Card className="bg-white/[0.02] border-white/[0.05] rounded-2xl">
           <CardContent className="p-4">
-            <span className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider">Today's Savings</span>
+            <span className="text-[9px] uppercase font-bold text-zinc-550 tracking-wider">Today's Savings</span>
             <p className={`text-base font-bold mt-1 font-mono ${todaySavings >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
               ₹{todaySavings}
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-zinc-900/60 border-zinc-800/80 rounded-2xl">
+        <Card className="bg-white/[0.02] border-white/[0.05] rounded-2xl">
           <CardContent className="p-4">
-            <span className="text-[9px] uppercase font-bold text-zinc-500 tracking-wider">Month Spending</span>
+            <span className="text-[9px] uppercase font-bold text-zinc-550 tracking-wider">Month Spending</span>
             <p className="text-base font-bold text-indigo-400 mt-1 font-mono">₹{monthSpending}</p>
           </CardContent>
         </Card>
       </div>
-
+ 
       {/* AI Daily Statement Card */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-indigo-950/30 to-violet-950/20 border border-indigo-900/30 rounded-3xl p-5 relative overflow-hidden backdrop-blur-xl">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles className="w-4 h-4 text-indigo-400" />
           <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">AI Daily Statement</span>
@@ -120,10 +120,10 @@ export async function DailySummaryWidget({ userId }: DailySummaryWidgetProps) {
           {aiSummaryText}
         </p>
       </div>
-
+ 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Recent Transactions List */}
-        <Card className="bg-zinc-900 border-zinc-800 rounded-3xl">
+        <Card className="bg-white/[0.03] backdrop-blur-xl border-white/[0.08] rounded-3xl">
           <CardContent className="p-5 space-y-3.5">
             <div className="flex justify-between items-center pb-1">
               <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Recent Logs</span>
@@ -150,9 +150,9 @@ export async function DailySummaryWidget({ userId }: DailySummaryWidgetProps) {
             </div>
           </CardContent>
         </Card>
-
+ 
         {/* Upcoming Bills List */}
-        <Card className="bg-zinc-900 border-zinc-800 rounded-3xl">
+        <Card className="bg-white/[0.03] backdrop-blur-xl border-white/[0.08] rounded-3xl">
           <CardContent className="p-5 space-y-3.5">
             <div className="flex justify-between items-center pb-1">
               <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Upcoming Bills</span>
@@ -187,13 +187,13 @@ export function DailySummaryWidgetSkeleton() {
     <div className="space-y-4 animate-pulse">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-16 bg-zinc-900 rounded-2xl border border-zinc-800/60" />
+          <div key={i} className="h-16 bg-white/[0.01] rounded-2xl border border-white/[0.04]" />
         ))}
       </div>
-      <div className="h-24 bg-zinc-900 rounded-3xl border border-zinc-800/60" />
+      <div className="h-24 bg-white/[0.01] rounded-3xl border border-white/[0.04]" />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="h-32 bg-zinc-900 rounded-3xl border border-zinc-800/60" />
-        <div className="h-32 bg-zinc-900 rounded-3xl border border-zinc-800/60" />
+        <div className="h-32 bg-white/[0.01] rounded-3xl border border-white/[0.04]" />
+        <div className="h-32 bg-white/[0.01] rounded-3xl border border-white/[0.04]" />
       </div>
     </div>
   );

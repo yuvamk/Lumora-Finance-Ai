@@ -22,7 +22,7 @@ export async function SubscriptionsWidget({ userId }: SubscriptionsWidgetProps) 
   if (error) {
     // Graceful widget-level degradation
     return (
-      <Card className="bg-zinc-900 border-zinc-800 rounded-3xl">
+      <Card className="bg-white/[0.03] backdrop-blur-xl border-white/[0.08] rounded-3xl">
         <CardContent className="p-6 py-8 text-center">
           <span className="text-xs text-zinc-500">Could not load subscriptions.</span>
         </CardContent>
@@ -42,7 +42,7 @@ export async function SubscriptionsWidget({ userId }: SubscriptionsWidgetProps) 
   }, 0);
 
   return (
-    <Card className="bg-zinc-900 border-zinc-800 rounded-3xl">
+    <Card className="bg-white/[0.03] backdrop-blur-xl border-white/[0.08] rounded-3xl">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
@@ -51,7 +51,7 @@ export async function SubscriptionsWidget({ userId }: SubscriptionsWidgetProps) 
             </span>
             <CardTitle className="text-lg font-bold text-white mt-0.5">Subscriptions</CardTitle>
           </div>
-          <RefreshCw className="w-5 h-5 text-zinc-500" />
+          <RefreshCw className="w-5 h-5 text-indigo-400 animate-[spin_8s_linear_infinite]" />
         </div>
         <CardDescription className="text-xs text-zinc-500">
           Active recurring commitments tracked this month.
@@ -60,8 +60,8 @@ export async function SubscriptionsWidget({ userId }: SubscriptionsWidgetProps) 
 
       <CardContent className="p-6 pt-0 space-y-3">
         {/* Monthly total pill */}
-        <div className="flex items-baseline justify-between bg-zinc-950/40 border border-zinc-800/60 rounded-2xl px-4 py-2.5">
-          <span className="text-xs text-zinc-500">Monthly commitment</span>
+        <div className="flex items-baseline justify-between bg-black/25 border border-white/[0.05] rounded-2xl px-4 py-2.5">
+          <span className="text-xs text-zinc-550">Monthly commitment</span>
           <span className="text-sm font-bold font-mono text-white">${monthlyTotal.toFixed(2)}</span>
         </div>
 
@@ -80,17 +80,17 @@ export async function SubscriptionsWidget({ userId }: SubscriptionsWidgetProps) 
             return (
               <div
                 key={s.id}
-                className="flex items-center justify-between p-3 bg-zinc-950/20 border border-zinc-900 rounded-xl"
+                className="flex items-center justify-between p-3 bg-white/[0.01] border border-white/[0.04] rounded-xl hover:border-white/[0.08] transition-all"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-300">
+                  <div className="w-8 h-8 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-[10px] font-bold text-zinc-350">
                     {s.name.slice(0, 2).toUpperCase()}
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-zinc-200">{s.name}</p>
                     <div className="flex items-center gap-1 mt-0.5">
-                      <Calendar className="w-3 h-3 text-zinc-600" />
-                      <span className={`text-[9px] font-mono ${isRenewalSoon ? "text-amber-400" : "text-zinc-600"}`}>
+                      <Calendar className="w-3.5 h-3.5 text-zinc-550" />
+                      <span className={`text-[9px] font-mono ${isRenewalSoon ? "text-amber-400" : "text-zinc-650"}`}>
                         {isRenewalSoon ? `Renews in ${daysUntil}d` : nextDate.toLocaleDateString()}
                       </span>
                     </div>
@@ -120,6 +120,6 @@ export async function SubscriptionsWidget({ userId }: SubscriptionsWidgetProps) 
 
 export function SubscriptionsWidgetSkeleton() {
   return (
-    <Card className="bg-zinc-900 border-zinc-800 rounded-3xl h-72 animate-pulse" />
+    <Card className="bg-white/[0.02] border-white/[0.06] rounded-3xl h-72 animate-pulse" />
   );
 }

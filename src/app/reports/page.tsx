@@ -77,7 +77,7 @@ export default async function ReportsPage() {
   if (!user) redirect("/auth/login");
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-6 pb-28">
+    <div className="min-h-screen bg-transparent text-white p-4 md:p-6 pb-28">
       <header className="flex items-center justify-between mb-6">
         <div>
           <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Analytics</span>

@@ -23,11 +23,11 @@ export async function TopHeader() {
   const firstName = profile?.display_name?.split(" ")[0] || "there";
 
   return (
-    <header className="sticky top-0 z-40 bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-800/40 px-4 py-3">
+    <header className="sticky top-0 z-40 bg-zinc-950/40 backdrop-blur-xl border-b border-white/[0.08] px-4 py-3">
       <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
         {/* Greeting */}
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-zinc-500">Good {getTimeOfDay()}</p>
+          <p className="text-xs text-zinc-550">Good {getTimeOfDay()}</p>
           <p className="text-sm font-bold text-white truncate">{firstName} 👋</p>
         </div>
 
@@ -35,12 +35,12 @@ export async function TopHeader() {
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Search */}
           <Link href="/search"
-            className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-zinc-800 transition-colors">
+            className="w-9 h-9 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.06] hover:border-white/[0.15] transition-colors">
             <Search className="w-4 h-4 text-zinc-400" />
           </Link>
 
           {/* Notifications */}
-          <Link href="/notifications" className="relative w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-zinc-800 transition-colors">
+          <Link href="/notifications" className="relative w-9 h-9 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.06] hover:border-white/[0.15] transition-colors">
             <Bell className="w-4 h-4 text-zinc-400" />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-indigo-500 rounded-full flex items-center justify-center text-[9px] font-bold text-white px-0.5">

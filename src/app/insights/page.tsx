@@ -40,7 +40,7 @@ export default async function InsightsPage() {
   if (!user) redirect("/auth/login");
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-4 md:p-6 pb-28">
+    <div className="min-h-screen bg-transparent text-white p-4 md:p-6 pb-28">
       <header className="mb-6 select-none">
         <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">AI Workspace</span>
         <h1 className="text-2xl font-bold flex items-center gap-2">

@@ -11,14 +11,14 @@ export async function BudgetsWidget({ userId }: BudgetsWidgetProps) {
   const { data: budgets } = await FinanceRepository.getBudgetsProgress(userId);
 
   return (
-    <Card className="bg-zinc-900 border-zinc-800 rounded-3xl">
+    <Card className="bg-white/[0.03] backdrop-blur-xl border-white/[0.08] rounded-3xl">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Limits Tracker</span>
+            <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Limits Tracker</span>
             <CardTitle className="text-lg font-bold text-white mt-0.5">Budget Utilization</CardTitle>
           </div>
-          <Activity className="w-5 h-5 text-zinc-500" />
+          <Activity className="w-5 h-5 text-indigo-400" />
         </div>
         <CardDescription className="text-xs text-zinc-500">
           Monthly expenditure thresholds monitored in real-time.
@@ -37,7 +37,7 @@ export async function BudgetsWidget({ userId }: BudgetsWidgetProps) {
             const barColor = isBreached ? "bg-rose-500" : isWarning ? "bg-amber-500" : "bg-indigo-500";
 
             return (
-              <div key={b.budgetId} className="space-y-1.5 p-3.5 bg-zinc-950/20 border border-zinc-900 rounded-2xl">
+              <div key={b.budgetId} className="space-y-1.5 p-3.5 bg-white/[0.01] border border-white/[0.04] rounded-2xl hover:border-white/[0.08] transition-all">
                 <div className="flex justify-between items-baseline">
                   <span className="text-xs font-semibold text-zinc-200">{b.categoryName}</span>
                   <div className="text-[10px] text-zinc-400 font-mono">
@@ -48,7 +48,7 @@ export async function BudgetsWidget({ userId }: BudgetsWidgetProps) {
                 </div>
 
                 {/* Progress bar container */}
-                <div className="w-full h-2 bg-zinc-850 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-white/[0.04] rounded-full overflow-hidden">
                   <div 
                     style={{ width: `${Math.min(100, b.utilizationPercentage)}%` }} 
                     className={`h-full ${barColor} rounded-full`}
@@ -72,6 +72,6 @@ export async function BudgetsWidget({ userId }: BudgetsWidgetProps) {
 
 export function BudgetsWidgetSkeleton() {
   return (
-    <Card className="bg-zinc-900 border-zinc-800 rounded-3xl h-64 animate-pulse" />
+    <Card className="bg-white/[0.02] border-white/[0.06] rounded-3xl h-64 animate-pulse" />
   );
 }

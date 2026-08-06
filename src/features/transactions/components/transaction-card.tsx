@@ -67,7 +67,7 @@ export function TransactionCard({
       }}
       role="button"
       tabIndex={0}
-      className="group flex items-center justify-between p-4 bg-zinc-900/60 border border-zinc-900 rounded-2xl hover:border-zinc-800 hover:bg-zinc-900/80 transition-all duration-200 cursor-pointer active:scale-[0.99] select-none focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+      className="group flex items-center justify-between p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-200 cursor-pointer active:scale-[0.99] select-none focus:outline-none focus:ring-1 focus:ring-indigo-500/50 shadow-sm"
     >
       {/* Left Column: Icon & Metadata */}
       <div className="flex items-center gap-3.5 flex-1 min-w-0 mr-3">

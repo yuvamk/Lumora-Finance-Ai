@@ -38,9 +38,9 @@ export default async function LedgerPage() {
   });
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col pb-28">
+    <div className="min-h-screen bg-transparent text-white flex flex-col pb-28">
       {/* Mini App Bar Header */}
-      <header className="px-4 pt-6 pb-2 bg-zinc-950 flex flex-col gap-0.5 select-none">
+      <header className="px-4 pt-6 pb-2 bg-transparent flex flex-col gap-0.5 select-none">
         <span className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Timeline</span>
         <h1 className="text-2xl font-bold tracking-tight">Ledger Journal</h1>
       </header>
