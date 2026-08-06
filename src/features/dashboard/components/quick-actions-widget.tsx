@@ -1,8 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PiggyBank, Target, RefreshCw, BookOpen, Zap } from "lucide-react";
-
+import { PiggyBank, Target, RefreshCw, BookOpen, Zap, Brain, Sparkles } from "lucide-react";
+ 
 const quickActions = [
   {
     label: "Ledger",
@@ -31,6 +31,20 @@ const quickActions = [
     href: "/subscriptions",
     icon: RefreshCw,
     colorClass: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  },
+  {
+    label: "Brain Dump",
+    description: "Save thoughts",
+    href: "/insights?tab=brainDump",
+    icon: Brain,
+    colorClass: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  },
+  {
+    label: "Habit Tracker",
+    description: "Check rituals",
+    href: "/insights?tab=habits",
+    icon: Sparkles,
+    colorClass: "bg-pink-500/10 text-pink-400 border-pink-500/20",
   },
 ];
 

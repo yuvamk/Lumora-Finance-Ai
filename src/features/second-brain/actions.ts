@@ -72,7 +72,6 @@ export async function upsertBrainDumpAction(_prev: ActionResponse, formData: For
       tags,
     });
  
-    revalidatePath("/insights");
     return { success: true, data: null };
   } catch (e: any) {
     return { success: false, error: e.message };
@@ -86,7 +85,6 @@ export async function deleteBrainDumpAction(dumpId: string): Promise<ActionRespo
     if (!user) return { success: false, error: "Not authenticated" };
  
     await SecondBrainRepository.deleteBrainDump(user.id, dumpId);
-    revalidatePath("/insights");
     return { success: true, data: null };
   } catch (e: any) {
     return { success: false, error: e.message };
@@ -103,7 +101,6 @@ export async function toggleHabitAction(name: string, status: boolean): Promise<
     const today = new Date().toISOString().split("T")[0];
     await SecondBrainRepository.toggleHabit(user.id, name, today, status);
     
-    revalidatePath("/insights");
     return { success: true, data: null };
   } catch (e: any) {
     return { success: false, error: e.message };
@@ -131,7 +128,6 @@ export async function updateCoreValuesAction(_prev: ActionResponse, formData: Fo
       goals,
     });
  
-    revalidatePath("/insights");
     return { success: true, data: null };
   } catch (e: any) {
     return { success: false, error: e.message };
@@ -163,7 +159,6 @@ export async function logWellbeingAction(_prev: ActionResponse, formData: FormDa
       logged_date: today,
     });
  
-    revalidatePath("/insights");
     return { success: true, data: null };
   } catch (e: any) {
     return { success: false, error: e.message };
@@ -193,7 +188,6 @@ export async function addMemoryAction(_prev: ActionResponse, formData: FormData)
       tags,
     });
  
-    revalidatePath("/insights");
     return { success: true, data: null };
   } catch (e: any) {
     return { success: false, error: e.message };
@@ -207,7 +201,6 @@ export async function deleteMemoryAction(memoryId: string): Promise<ActionRespon
     if (!user) return { success: false, error: "Not authenticated" };
  
     await SecondBrainRepository.deleteMemory(user.id, memoryId);
-    revalidatePath("/insights");
     return { success: true, data: null };
   } catch (e: any) {
     return { success: false, error: e.message };
