@@ -20,7 +20,7 @@ export default async function LedgerPage() {
     .order("sort_order", { ascending: true });
 
   if (catError) {
-    throw new Error(`Failed to load categories: ${catError.message}`);
+    console.warn(`Failed to load categories: ${catError.message}`);
   }
 
   // Map database categories safely

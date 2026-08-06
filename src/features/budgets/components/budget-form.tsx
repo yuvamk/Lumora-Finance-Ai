@@ -27,6 +27,10 @@ export function BudgetForm({ categories, onSuccess }: BudgetFormProps) {
       toast.error("Please enter a valid numeric limit.");
       return;
     }
+    if (!category) {
+      toast.error("Please select a category for this budget.");
+      return;
+    }
 
     startTransition(async () => {
       const response = await createBudgetAction({
@@ -53,15 +57,22 @@ export function BudgetForm({ categories, onSuccess }: BudgetFormProps) {
       {/* Category Selection */}
       <div className="space-y-1.5">
         <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Category</label>
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-zinc-700"
-        >
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
+        {categories.length === 0 ? (
+          <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 px-3 text-sm text-zinc-500">
+            No categories found — add categories in Settings first.
+          </div>
+        ) : (
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 px-3 text-sm text-white focus:outline-none focus:border-zinc-700 cursor-pointer"
+          >
+            <option value="" className="bg-zinc-950 text-zinc-400">— Select a Category —</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Limit Input */}

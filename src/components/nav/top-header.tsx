@@ -11,9 +11,6 @@ export async function TopHeader() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Run automated alert checks for subscription renewals and budget limits
-  await NotificationEngine.checkAndGenerateAlerts(user.id).catch(() => {});
-
   const [profile, unreadCount] = await Promise.all([
     supabase.from("profiles").select("display_name").eq("id", user.id).single().then(r => r.data),
     NotificationsRepository.getUnreadCount(user.id).catch(() => 0),

@@ -129,10 +129,28 @@ export async function sendOtpAction(
  
   // Generate 6-digit numeric OTP code
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 mins
  
-  // Store in cache
-  otpStore.set(email.toLowerCase(), { code: otp, expiresAt, verified: false });
+  try {
+    const adminClient = createAdminClient();
+    
+    // Store in DB table
+    const { error: dbError } = await adminClient
+      .from("password_reset_otps")
+      .upsert({
+        email: email.toLowerCase(),
+        code: otp,
+        expires_at: expiresAt,
+        verified: false,
+      }, { onConflict: "email" });
+
+    if (dbError) {
+      throw new Error(`Failed to save OTP in database: ${dbError.message}`);
+    }
+  } catch (err: any) {
+    console.error("Failed to store password reset OTP:", err);
+    return { success: false, error: "Failed to generate security code. Please try again." };
+  }
  
   // Send email via Nodemailer
   const emailResult = await EmailService.sendEmail({
@@ -163,24 +181,37 @@ export async function verifyPasswordResetOtpAction(
     return { success: false, error: "Email and OTP code are required." };
   }
  
-  const entry = otpStore.get(email.toLowerCase());
-  if (!entry) {
-    return { success: false, error: "No active OTP request found for this email." };
+  try {
+    const adminClient = createAdminClient();
+    const { data: entry, error: dbError } = await adminClient
+      .from("password_reset_otps")
+      .select("code, expires_at")
+      .eq("email", email.toLowerCase())
+      .single();
+
+    if (dbError || !entry) {
+      return { success: false, error: "No active OTP request found for this email." };
+    }
+ 
+    if (new Date().getTime() > new Date(entry.expires_at).getTime()) {
+      await adminClient.from("password_reset_otps").delete().eq("email", email.toLowerCase());
+      return { success: false, error: "OTP has expired. Please request a new one." };
+    }
+ 
+    if (entry.code !== otp.trim()) {
+      return { success: false, error: "Invalid OTP code. Please check and try again." };
+    }
+ 
+    // Mark as verified in DB
+    await adminClient
+      .from("password_reset_otps")
+      .update({ verified: true })
+      .eq("email", email.toLowerCase());
+ 
+    return { success: true, data: { email, otp: otp.trim() } };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to verify security code." };
   }
- 
-  if (Date.now() > entry.expiresAt) {
-    otpStore.delete(email.toLowerCase());
-    return { success: false, error: "OTP has expired. Please request a new one." };
-  }
- 
-  if (entry.code !== otp.trim()) {
-    return { success: false, error: "Invalid OTP code. Please check and try again." };
-  }
- 
-  // Mark as verified in store
-  otpStore.set(email.toLowerCase(), { ...entry, verified: true });
- 
-  return { success: true, data: { email, otp: otp.trim() } };
 }
  
 /** Reset password via verified OTP */
@@ -205,14 +236,25 @@ export async function resetPasswordWithOtpAction(
     return { success: false, error: "Passwords do not match." };
   }
  
-  const entry = otpStore.get(email.toLowerCase());
-  if (!entry || !entry.verified || entry.code !== otp.trim()) {
-    return { success: false, error: "OTP verification expired or invalid. Please try again." };
-  }
- 
   try {
     const adminClient = createAdminClient();
-    
+
+    // Check verification status in DB
+    const { data: entry, error: dbError } = await adminClient
+      .from("password_reset_otps")
+      .select("code, verified, expires_at")
+      .eq("email", email.toLowerCase())
+      .single();
+
+    if (dbError || !entry || !entry.verified || entry.code !== otp.trim()) {
+      return { success: false, error: "OTP verification expired or invalid. Please try again." };
+    }
+
+    if (new Date().getTime() > new Date(entry.expires_at).getTime()) {
+      await adminClient.from("password_reset_otps").delete().eq("email", email.toLowerCase());
+      return { success: false, error: "OTP has expired. Please request a new one." };
+    }
+ 
     // 1. Fetch user by email to get user UUID
     const { data: { users }, error: getError } = await adminClient.auth.admin.listUsers();
     if (getError) {
@@ -233,8 +275,8 @@ export async function resetPasswordWithOtpAction(
       return { success: false, error: updateError.message };
     }
  
-    // 3. Clear store
-    otpStore.delete(email.toLowerCase());
+    // 3. Clear DB entry
+    await adminClient.from("password_reset_otps").delete().eq("email", email.toLowerCase());
  
     return { success: true, data: null };
   } catch (err: any) {

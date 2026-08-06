@@ -11,19 +11,26 @@ export async function GET() {
 
   // Build CSV in-memory
   const headers = ["Date", "Type", "Amount", "Currency", "Category", "Notes"];
+  
+  const escapeCsv = (val: any) => {
+    if (val === null || val === undefined) return '""';
+    const str = String(val).replace(/"/g, '""');
+    return `"${str}"`;
+  };
+
   const rows = transactions.map((t: Record<string, unknown>) => {
     const cats = t.categories as { name: string } | null;
     return [
-      t.date,
-      t.type,
-      t.amount,
-      t.currency_symbol,
-      cats?.name ?? "",
-      `"${String(t.notes ?? "").replace(/"/g, '""')}"`,
+      escapeCsv(t.date),
+      escapeCsv(t.type),
+      escapeCsv(t.amount),
+      escapeCsv(t.currency_symbol),
+      escapeCsv(cats?.name),
+      escapeCsv(t.notes),
     ].join(",");
   });
 
-  const csv = [headers.join(","), ...rows].join("\n");
+  const csv = [headers.map(h => `"${h}"`).join(","), ...rows].join("\n");
 
   return new NextResponse(csv, {
     headers: {

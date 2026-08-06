@@ -118,10 +118,11 @@ export class FinanceRepository {
     const dbTimeMs = Math.round(performance.now() - start);
 
     if (error) {
-      throw new Error(`vw_budget_progress query failure: ${error.message}`);
+      console.warn("vw_budget_progress query failure:", error.message);
+      return { data: [], dbTimeMs };
     }
 
-    const list = data.map((row) => ({
+    const list = (data || []).map((row) => ({
       budgetId: row.budget_id,
       categoryId: row.category_id,
       categoryName: row.category_name,
@@ -154,10 +155,11 @@ export class FinanceRepository {
     const dbTimeMs = Math.round(performance.now() - start);
 
     if (error) {
-      throw new Error(`vw_goal_progress query failure: ${error.message}`);
+      console.warn("vw_goal_progress query failure:", error.message);
+      return { data: [], dbTimeMs };
     }
 
-    const list = data.map((row) => {
+    const list = (data || []).map((row) => {
       const targetAmount = Number(row.target_amount);
       const totalSaved = Number(row.total_saved);
       const targetDate = row.target_date;

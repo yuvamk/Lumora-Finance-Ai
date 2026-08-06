@@ -63,13 +63,18 @@ export function SecondBrainWidgets({ userId }: { userId: string }) {
   const handleToggleHabit = (name: string) => {
     const nextStatus = !habitsData[name];
     setHabitsData(prev => ({ ...prev, [name]: nextStatus }));
- 
+
     startTransition(async () => {
-      const res = await toggleHabitAction(name, nextStatus);
-      if (res.success) {
-        toast.success(`${name} updated!`);
-      } else {
-        toast.error("Failed to update habit.");
+      try {
+        const res = await toggleHabitAction(name, nextStatus);
+        if (res.success) {
+          toast.success(`${name} updated!`);
+        } else {
+          toast.error(res.error || "Failed to update habit.");
+          setHabitsData(prev => ({ ...prev, [name]: !nextStatus })); // Rollback
+        }
+      } catch (err: any) {
+        toast.error(err?.message || "Something went wrong updating habit.");
         setHabitsData(prev => ({ ...prev, [name]: !nextStatus })); // Rollback
       }
     });

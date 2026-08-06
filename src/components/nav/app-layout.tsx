@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { BottomNav } from "@/components/nav/bottom-nav";
 import { QuickAddButton } from "@/components/nav/quick-add-button";
@@ -18,6 +18,13 @@ export function AppLayout({ children, topHeader }: AppLayoutProps) {
     pathname === "/" ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/onboarding");
+
+  useEffect(() => {
+    if (!hideChrome) {
+      // Fire alert checks in the background after page has hydrated, preventing TTFB blocking
+      fetch("/api/notifications/check").catch(() => {});
+    }
+  }, [hideChrome]);
 
   if (hideChrome) {
     return <>{children}</>;

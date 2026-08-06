@@ -33,6 +33,14 @@ export function ReceiptScanner({ categories, onSuccess }: ReceiptScannerProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate that the uploaded file is a supported image format
+    const supportedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    if (!supportedTypes.includes(file.type)) {
+      toast.error("Unsupported file type. Please upload a receipt image (PNG, JPEG, or WEBP).");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setIsScanning(true);
     toast.info("Extracting invoice parameters...");
 
@@ -132,7 +140,7 @@ export function ReceiptScanner({ categories, onSuccess }: ReceiptScannerProps) {
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept="image/*,application/pdf"
+          accept="image/png,image/jpeg,image/webp"
           className="hidden"
         />
 

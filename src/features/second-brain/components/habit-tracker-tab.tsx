@@ -19,12 +19,16 @@ export function HabitTrackerTab({ habits, onRefresh }: HabitTrackerTabProps) {
  
   const handleToggleHabit = (name: string, currentStatus: boolean) => {
     startTransition(async () => {
-      const res = await toggleHabitAction(name, !currentStatus);
-      if (res.success) {
-        toast.success(`${name} ${!currentStatus ? 'checked!' : 'unchecked!'}`);
-        onRefresh();
-      } else {
-        toast.error(res.error);
+      try {
+        const res = await toggleHabitAction(name, !currentStatus);
+        if (res.success) {
+          toast.success(`${name} ${!currentStatus ? 'checked!' : 'unchecked!'}`);
+          onRefresh();
+        } else {
+          toast.error(res.error || "Failed to update habit.");
+        }
+      } catch (err: any) {
+        toast.error(err?.message || "Something went wrong updating habit.");
       }
     });
   };

@@ -416,7 +416,7 @@ export async function getAuditInsightsAction(): Promise<ActionResponse<AuditInsi
     // Fetch transactions from the database directly
     const { data: dbTx, error } = await supabase
       .from("transactions")
-      .select("amount, description, created_at, type")
+      .select("amount, notes, created_at, type")
       .eq("user_id", user.id)
       .is("deleted_at", null);
  
@@ -429,7 +429,7 @@ export async function getAuditInsightsAction(): Promise<ActionResponse<AuditInsi
     const foodKeywords = ["zomato", "swiggy", "ubereats", "food", "deliver", "restaurant", "cafe", "dining", "mcdonald", "pizza"];
     const foodTxs = txs.filter(t => 
       t.type === "expense" && 
-      foodKeywords.some(kw => t.description?.toLowerCase().includes(kw))
+      foodKeywords.some(kw => t.notes?.toLowerCase().includes(kw))
     );
     const totalFoodExpense = foodTxs.reduce((sum, t) => sum + Number(t.amount), 0);
  
@@ -481,7 +481,7 @@ export async function getAuditInsightsAction(): Promise<ActionResponse<AuditInsi
     const subKeywords = ["netflix", "spotify", "prime", "youtube", "icloud", "microsoft", "adobe", "google one", "renew", "premium", "pro"];
     const subTxs = txs.filter(t => 
       t.type === "expense" && 
-      subKeywords.some(kw => t.description?.toLowerCase().includes(kw))
+      subKeywords.some(kw => t.notes?.toLowerCase().includes(kw))
     );
     const totalSubExpense = subTxs.reduce((sum, t) => sum + Number(t.amount), 0);
  

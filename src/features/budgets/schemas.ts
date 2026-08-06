@@ -4,7 +4,12 @@ export const budgetPeriodSchema = z.enum(["daily", "weekly", "monthly", "yearly"
 
 export const createBudgetSchema = z.object({
   name: z.string().max(100).nullable().optional(),
-  category_id: z.string().uuid("Category must be a valid UUID").nullable().optional(),
+  category_id: z.union([
+    z.string().uuid("Category must be a valid UUID"),
+    z.literal("").transform(() => undefined),
+    z.null(),
+    z.undefined(),
+  ]).optional(),
   limit_amount: z.number().positive("Limit must be a positive number"),
   period: budgetPeriodSchema.default("monthly"),
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Start date must match YYYY-MM-DD"),

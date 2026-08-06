@@ -141,9 +141,8 @@ export function BudgetList({ initialBudgets, categories }: BudgetListProps) {
                 {/* Progress bar */}
                 <div className="w-full h-1.5 bg-zinc-850 rounded-full overflow-hidden">
                   <div 
-                    style={{ width: `${Math.min(100, b.utilizationPercentage)}%` }} 
-                    style-color={b.color}
-                    className="h-full bg-indigo-500 rounded-full transition-all"
+                    style={{ width: `${Math.min(100, b.utilizationPercentage)}%`, backgroundColor: b.color || "#6366f1" }} 
+                    className="h-full rounded-full transition-all"
                   />
                 </div>
 
