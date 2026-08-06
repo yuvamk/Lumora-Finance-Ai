@@ -6,6 +6,10 @@ import {
   signInSchema 
 } from "./schemas";
 
+export type ActionResponse<T = null> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;

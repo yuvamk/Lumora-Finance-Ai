@@ -2,7 +2,8 @@
 "use client";
  
 import React, { useState, useEffect, useTransition } from "react";
-import { getSandboxDetailsAction, buyPaperAssetAction, sellPaperAssetAction, MOCK_STOCK_PRICES, getLiveMockPrice } from "../actions";
+import { getSandboxDetailsAction, buyPaperAssetAction, sellPaperAssetAction, getLiveMockPrice } from "../actions";
+import { MOCK_STOCK_PRICES } from "../types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -194,7 +195,7 @@ export function PaperTradingTab({ onRefresh }: PaperTradingTabProps) {
               onChange={(e) => setSelectedSymbol(e.target.value)}
               className="w-full bg-zinc-950 border border-white/[0.08] text-white rounded-xl h-10 px-3 text-xs focus:border-indigo-500/60 outline-none"
             >
-              {Object.entries(MOCK_STOCK_PRICES).map(([sym, details]) => (
+              {Object.entries(MOCK_STOCK_PRICES).map(([sym, details]: [string, { name: string; price: number }]) => (
                 <option key={sym} value={sym}>
                   {sym} - {details.name} (₹{livePrices[sym] || details.price})
                 </option>

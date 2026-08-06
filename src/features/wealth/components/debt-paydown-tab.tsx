@@ -2,7 +2,8 @@
 "use client";
  
 import React, { useState, useTransition } from "react";
-import { upsertDebtAction, deleteDebtAction, DebtSuggestion } from "../actions";
+import { upsertDebtAction, deleteDebtAction } from "../actions";
+import type { DebtSuggestion } from "../types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";

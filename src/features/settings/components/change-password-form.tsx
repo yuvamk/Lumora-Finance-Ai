@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useActionState } from "react";
-import { resetPasswordAction, type ActionResponse } from "@/features/auth/actions";
+import { resetPasswordAction } from "@/features/auth/actions";
+import type { ActionResponse } from "@/features/auth/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";

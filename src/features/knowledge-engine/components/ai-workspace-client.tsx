@@ -19,14 +19,16 @@ import { AssetAllocatorTab } from "@/features/wealth/components/asset-allocator-
 import { DebtPaydownTab } from "@/features/wealth/components/debt-paydown-tab";
 import { PaperTradingTab } from "@/features/wealth/components/paper-trading-tab";
 import { SpendingAuditorTab } from "@/features/wealth/components/spending-auditor-tab";
-import { getWealthSummaryAction, type WealthSummary } from "@/features/wealth/actions";
+import { getWealthSummaryAction } from "@/features/wealth/actions";
+import type { WealthSummary } from "@/features/wealth/types";
  
 import { BrainDumpTab } from "@/features/second-brain/components/brain-dump-tab";
 import { HabitTrackerTab } from "@/features/second-brain/components/habit-tracker-tab";
 import { VisionBoardTab } from "@/features/second-brain/components/vision-board-tab";
 import { WellbeingTab } from "@/features/second-brain/components/wellbeing-tab";
 import { MemoryVaultTab } from "@/features/second-brain/components/memory-vault-tab";
-import { getBrainSummaryAction, type SecondBrainSummary } from "@/features/second-brain/actions";
+import { getBrainSummaryAction } from "@/features/second-brain/actions";
+import type { SecondBrainSummary } from "@/features/second-brain/types";
  
 interface AiWorkspaceClientProps {
   userId: string;

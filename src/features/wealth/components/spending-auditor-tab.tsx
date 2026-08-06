@@ -2,7 +2,8 @@
 "use client";
  
 import React, { useState, useEffect } from "react";
-import { getAuditInsightsAction, AuditInsight } from "../actions";
+import { getAuditInsightsAction } from "../actions";
+import type { AuditInsight } from "../types";
 import { Sparkles, ShieldCheck, AlertCircle, RefreshCw, BadgePercent } from "lucide-react";
  
 export function SpendingAuditorTab() {

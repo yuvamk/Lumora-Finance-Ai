@@ -12,7 +12,7 @@ import {
   UpdateSubscriptionInput,
   DetectedSubscription
 } from "./schemas";
-import { ActionResponse } from "@/features/transactions/actions";
+import type { ActionResponse } from "@/features/transactions/types";
 
 /**
  * Server Action to create a new subscription.

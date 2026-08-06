@@ -2,7 +2,8 @@
 "use client";
  
 import React, { useState, useTransition } from "react";
-import { upsertAssetAction, deleteAssetAction, RebalanceSuggestion } from "../actions";
+import { upsertAssetAction, deleteAssetAction } from "../actions";
+import type { RebalanceSuggestion } from "../types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";

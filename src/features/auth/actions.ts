@@ -4,10 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { signInSchema, signUpSchema } from "./schemas";
 import { AuthRepository } from "./repository";
-
-export type ActionResponse<T = null> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+import type { ActionResponse } from "./types";
 
 /** Sign in with email + password */
 export async function signInAction(

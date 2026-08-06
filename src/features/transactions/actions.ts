@@ -13,9 +13,7 @@ import {
   BulkUpdateTransactionsInput
 } from "./schemas";
 
-export type ActionResponse<T> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+import type { ActionResponse, NlpParsedTransaction } from "./types";
 
 /**
  * Server Action to create a new transaction.
@@ -152,19 +150,6 @@ export async function bulkUpdateTransactionsAction(
   }
 }
 
-export interface NlpParsedTransaction {
-  amount: number;
-  type: "income" | "expense" | "transfer";
-  merchant: string;
-  item: string;
-  categorySuggestion: string;
-  categoryId: string;
-  paymentMethod: string;
-  notes: string;
-  date: string;
-  time: string;
-  isRecurring: boolean;
-}
 
 /**
  * Server Action to parse natural language finance statements using Claude.

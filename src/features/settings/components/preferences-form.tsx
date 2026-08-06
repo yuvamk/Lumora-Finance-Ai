@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useActionState } from "react";
-import { updateSettingsAction, type ActionResponse } from "@/features/auth/actions";
+import { updateSettingsAction } from "@/features/auth/actions";
+import type { ActionResponse } from "@/features/auth/types";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2, Check } from "lucide-react";

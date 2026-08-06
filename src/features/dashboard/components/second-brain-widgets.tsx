@@ -3,7 +3,8 @@
  
 import React, { useState, useEffect, useTransition } from "react";
 import { getBrainSummaryAction, toggleHabitAction, logWellbeingAction, upsertBrainDumpAction } from "@/features/second-brain/actions";
-import { getWealthSummaryAction, WealthSummary } from "@/features/wealth/actions";
+import { getWealthSummaryAction } from "@/features/wealth/actions";
+import type { WealthSummary } from "@/features/wealth/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2, Flame, Brain, Heart, Sparkles, Scale, HeartPulse, Target, CheckCircle2, Circle } from "lucide-react";

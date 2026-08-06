@@ -3,17 +3,10 @@
  
 import { createClient } from "@/lib/supabase/server";
 import { SecondBrainRepository, BrainDump, HabitLog, CoreValues, WellbeingLog, MemoryItem } from "./repository";
-import { ActionResponse } from "@/features/auth/actions";
+import type { ActionResponse } from "@/features/auth/types";
 import { revalidatePath } from "next/cache";
- 
-export interface SecondBrainSummary {
-  dumps: BrainDump[];
-  habits: HabitLog[];
-  coreValues: CoreValues;
-  wellbeing: WellbeingLog[];
-  memories: MemoryItem[];
-}
- 
+import type { SecondBrainSummary } from "./types";
+
 /** Load unified Second Brain profile summary */
 export async function getBrainSummaryAction(): Promise<ActionResponse<SecondBrainSummary>> {
   try {

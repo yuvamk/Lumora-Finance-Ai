@@ -4,9 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NotificationsRepository } from "./repository";
 import { revalidatePath } from "next/cache";
 
-export type ActionResponse<T = null> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+import type { ActionResponse } from "@/features/auth/types";
 
 export async function markNotificationReadAction(notificationId: string): Promise<ActionResponse> {
   const supabase = await createClient();

@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { OcrEngine } from "./services/ocr-engine";
 import { OcrResult, ocrResultSchema } from "./schemas";
-import { ActionResponse } from "@/features/transactions/actions";
+import type { ActionResponse } from "@/features/transactions/types";
 
 interface UploadReceiptInput {
   fileName: string;
