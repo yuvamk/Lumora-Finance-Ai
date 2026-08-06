@@ -104,7 +104,7 @@ if (process.env.NODE_ENV !== "production") {
   globalForOtp.otpStore = otpStore;
 }
  
-export function createAdminClient() {
+function createAdminClient() {
   return createSupabaseClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.SUPABASE_SERVICE_ROLE_KEY,
