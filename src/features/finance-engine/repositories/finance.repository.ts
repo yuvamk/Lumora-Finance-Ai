@@ -41,19 +41,16 @@ export class FinanceRepository {
     const dbTimeMs = Math.round(performance.now() - start);
 
     if (error) {
-      if (error.code === "PGRST116") {
-        // Return blank default record if profile view not ready
-        return {
-          data: {
-            currentBalance: 0,
-            monthIncome: 0,
-            monthExpense: 0,
-            activeSubscriptionsTotal: 0,
-          },
-          dbTimeMs,
-        };
-      }
-      throw new Error(`vw_dashboard_summary query failure: ${error.message}`);
+      console.warn("vw_dashboard_summary query failure:", error.message);
+      return {
+        data: {
+          currentBalance: 0,
+          monthIncome: 0,
+          monthExpense: 0,
+          activeSubscriptionsTotal: 0,
+        },
+        dbTimeMs,
+      };
     }
 
     return {
@@ -83,7 +80,8 @@ export class FinanceRepository {
     const dbTimeMs = Math.round(performance.now() - start);
 
     if (error) {
-      throw new Error(`vw_category_breakdown query failure: ${error.message}`);
+      console.warn("vw_category_breakdown query failure:", error.message);
+      return { data: [], dbTimeMs };
     }
 
     const summaries = data.map((row: CategoryBreakdownRow) => {
